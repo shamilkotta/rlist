@@ -39,7 +39,7 @@ interface SearchAndFiltersProps {
   tags: TagType[];
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
-  variant?: "mobile" | "sidebar";
+  variant?: "sidebar" | "search-only";
 }
 
 export function SearchAndFilters({
@@ -47,7 +47,7 @@ export function SearchAndFilters({
   tags,
   filters,
   onFiltersChange,
-  variant = "mobile",
+  variant = "search-only",
 }: SearchAndFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
 
@@ -87,25 +87,6 @@ export function SearchAndFilters({
   if (variant === "sidebar") {
     return (
       <div className="space-y-6">
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            value={filters.search}
-            onChange={(e) => updateFilters({ search: e.target.value })}
-            className="pl-10 pr-12 shadow-none"
-          />
-          {filters.search && (
-            <button
-              onClick={() => updateFilters({ search: "" })}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
         {/* Filter Controls */}
         <div className="space-y-4">
           {hasActiveFilters && (
@@ -254,15 +235,15 @@ export function SearchAndFilters({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="w-full">
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by title, URL, or notes..."
+          placeholder="Search by title, URL, tags, or notes..."
           value={filters.search}
           onChange={(e) => updateFilters({ search: e.target.value })}
-          className="pl-10 pr-12 shadow-none"
+          className="pl-10 shadow-none focus-visible:ring-0"
         />
         {filters.search && (
           <button
@@ -272,175 +253,6 @@ export function SearchAndFilters({
             <X className="h-4 w-4" />
           </button>
         )}
-      </div>
-
-      {/* Filter Controls */}
-      <div className="flex flex-wrap items-center gap-3">
-        <Popover open={showFilters} onOpenChange={setShowFilters}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 bg-transparent shadow-none"
-            >
-              <Filter className="h-4 w-4" />
-              Filters
-              {hasActiveFilters && (
-                <Badge
-                  variant="secondary"
-                  className="ml-1 px-1.5 py-0.5 text-xs shadow-none"
-                >
-                  {[
-                    filters.groupId !== "all" ? 1 : 0,
-                    filters.readStatus !== "all" ? 1 : 0,
-                    filters.selectedTags.length,
-                  ].reduce((a, b) => a + b, 0)}
-                </Badge>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-80 shadow-none border border-border bg-card"
-            align="start"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Filters</h4>
-                {hasActiveFilters && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    className="shadow-none"
-                  >
-                    Clear all
-                  </Button>
-                )}
-              </div>
-
-              {/* Group Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Folder className="h-4 w-4" />
-                  Group
-                </label>
-                <Select
-                  value={filters.groupId}
-                  onValueChange={(value) => updateFilters({ groupId: value })}
-                >
-                  <SelectTrigger className="shadow-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="shadow-none border border-border bg-card">
-                    <SelectItem value="all">All groups</SelectItem>
-                    <SelectItem value="none">No group</SelectItem>
-                    {groups.map((group) => (
-                      <SelectItem key={group.id} value={group.id}>
-                        {group.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Read Status Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Status
-                </label>
-                <Select
-                  value={filters.readStatus}
-                  onValueChange={(value) =>
-                    updateFilters({ readStatus: value })
-                  }
-                >
-                  <SelectTrigger className="shadow-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="shadow-none border border-border bg-card">
-                    <SelectItem value="all">All items</SelectItem>
-                    <SelectItem value="unread">Unread only</SelectItem>
-                    <SelectItem value="read">Read only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Tags Filter */}
-              {tags.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
-                    Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant={
-                          filters.selectedTags.includes(tag.id)
-                            ? "default"
-                            : "outline"
-                        }
-                        className="cursor-pointer hover:bg-accent shadow-none"
-                        onClick={() => toggleTag(tag.id)}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {/* Active Filter Badges */}
-        {filters.groupId !== "all" && (
-          <Badge variant="secondary" className="gap-1 shadow-none">
-            <Folder className="h-3 w-3" />
-            {filters.groupId === "none"
-              ? "No group"
-              : groups.find((g) => g.id === filters.groupId)?.name ||
-                "Unknown group"}
-            <button onClick={() => updateFilters({ groupId: "all" })}>
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        )}
-
-        {filters.readStatus !== "all" && (
-          <Badge variant="secondary" className="gap-1 shadow-none">
-            {filters.readStatus === "read" ? (
-              <CheckCircle2 className="h-3 w-3" />
-            ) : (
-              <Clock className="h-3 w-3" />
-            )}
-            {filters.readStatus === "read" ? "Read" : "Unread"}
-            <button onClick={() => updateFilters({ readStatus: "all" })}>
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        )}
-
-        {filters.selectedTags.map((tagId) => {
-          const tag = tags.find((t) => t.id === tagId);
-          if (!tag) return null;
-
-          return (
-            <Badge
-              key={tagId}
-              variant="secondary"
-              className="gap-1 shadow-none"
-            >
-              <Tag className="h-3 w-3" />
-              {tag.name}
-              <button onClick={() => removeTag(tagId)}>
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          );
-        })}
       </div>
     </div>
   );

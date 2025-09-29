@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@workspace/ui/components/card";
-import { BookOpen, Clock, CheckCircle2, Folder } from "lucide-react";
+import { BookOpen, Clock, CheckCircle2, Folder, TagIcon } from "lucide-react";
 import type { ReadLaterItem, Group } from "@/lib/types";
 
 interface StatsOverviewProps {
@@ -17,7 +17,7 @@ export function StatsOverview({ items, groups }: StatsOverviewProps) {
 
   const stats = [
     {
-      label: "Total Items",
+      label: "Total",
       value: totalItems,
       icon: BookOpen,
       color: "text-blue-600",
@@ -35,23 +35,26 @@ export function StatsOverview({ items, groups }: StatsOverviewProps) {
       color: "text-green-600",
     },
     {
-      label: "Groups",
+      label: "Tags",
       value: totalGroups,
-      icon: Folder,
+      icon: TagIcon,
       color: "text-purple-600",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-4 mb-8 overflow-auto w-auto">
       {stats.map((stat) => (
-        <Card key={stat.label}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
+        <Card
+          key={stat.label}
+          className="shadow-none min-w-[150px] sm:min-w-[0px] h-fit p-0 rounded-md"
+        >
+          <CardContent className="px-2 py-1">
+            <div className="flex items-center gap-2">
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
-              <div>
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <div className="flex gap-1 lg:gap-2 items-center">
+                <p className="text-xl font-bold">{stat.value}</p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
               </div>
             </div>
           </CardContent>
