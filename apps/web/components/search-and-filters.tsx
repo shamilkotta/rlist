@@ -91,7 +91,6 @@ export function SearchAndFilters({
         <div className="space-y-4">
           {hasActiveFilters && (
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Active Filters</h4>
               <Button
                 variant="ghost"
                 size="sm"

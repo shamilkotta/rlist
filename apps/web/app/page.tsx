@@ -30,6 +30,7 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar";
 import { Button } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
 
 export default function HomePage() {
   const [items, setItems] = useState<ReadLaterItem[]>([]);
@@ -89,7 +90,7 @@ export default function HomePage() {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen bg-background flex w-full">
         <Sidebar className="hidden bg-transparent md:flex border-r border-border sticky">
-          <SidebarHeader className="border-b border-border p-4">
+          <SidebarHeader className=" mt-5 p-4">
             <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
               <DialogTrigger asChild>
                 <Button className="w-full gap-2">
@@ -153,10 +154,10 @@ export default function HomePage() {
 
             <div className="px-4">
               <div className="mb-3 flex items-center gap-3">
-                <SidebarTrigger
+                {/* <SidebarTrigger
                   className="md:hidden flex items-center justify-center w-9 h-9 rounded-md border border-border bg-background"
                   icon={<Settings2 className="w-7 h-7" />}
-                />
+                /> */}
                 <SearchAndFilters
                   groups={groups}
                   tags={tags}
@@ -165,7 +166,37 @@ export default function HomePage() {
                 />
               </div>
 
-              <StatsOverview items={items} groups={groups} />
+              <div className="flex flex-row mb-5 overflow-auto items-center mt-5 w-auto">
+                {groups.map((group, idx) => (
+                  <div key={group.id} className="flex flex-row">
+                    <div className="min-w-[150px] justify-center group px-2 cursor-pointer flex flex-col items-center">
+                      <h6
+                        className={cn(
+                          "text-sm text-muted-foreground",
+                          idx === 0 ? "font-bold" : "font-normal",
+                          idx === 0
+                            ? "text-foreground"
+                            : "text-muted-foreground",
+                          "group-hover:text-foreground text-center",
+                          "text-nowrap"
+                        )}
+                      >
+                        {group.name}
+                      </h6>
+                    </div>
+                    <div className="w-[1px] bg-border mx-1" />
+                  </div>
+                ))}
+                <div
+                  className={cn(
+                    "w-[50px] h-[25px] cursor-pointer flex flex-col items-center justify-center",
+                    " hover:bg-accent text-muted-foreground hover:text-foreground",
+                    "rounded"
+                  )}
+                >
+                  <Plus className="h-4 w-4" />
+                </div>
+              </div>
 
               {(filters.search ||
                 filters.groupId !== "all" ||

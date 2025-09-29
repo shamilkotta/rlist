@@ -119,7 +119,7 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
         return (
           <Card
             key={item.id}
-            className={`shadow-none border border-border bg-card text-card-foreground transition-all duration-200 hover:border-foreground/20 ${item.is_read ? "opacity-60" : ""}`}
+            className={`shadow-none border border-border py-0 bg-card text-card-foreground transition-all duration-200 hover:border-foreground/20 ${item.is_read ? "opacity-60" : ""}`}
           >
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-4">
@@ -182,7 +182,8 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                         {item.group.name}
                       </div>
                     )}
-
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
                     {item.tags && item.tags.length > 0 && (
                       <div className="flex items-center gap-1">
                         <Tag className="h-3 w-3" />
