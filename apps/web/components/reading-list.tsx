@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import type { ReadLaterItem } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
-import { getDomainFromUrl, truncateText } from "@/lib/url-metadata";
+import { getDomainFromUrl } from "@/lib/url-metadata";
 import { cn } from "@workspace/ui/lib/utils";
+import { CopyButton } from "@workspace/ui/components/copy-button";
 
 interface ReadingListProps {
   items: ReadLaterItem[];
@@ -83,7 +84,7 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
     if (item.title) {
       return {
         mainTitle: item.title,
-        subtitle: item.fetched_title || getDomainFromUrl(item.url),
+        subtitle: getDomainFromUrl(item.url),
       };
     } else if (item.fetched_title) {
       return {
@@ -92,8 +93,8 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
       };
     } else {
       return {
-        mainTitle: getDomainFromUrl(item.url),
-        subtitle: null,
+        mainTitle: getDomainFromUrl(item.url, true),
+        subtitle: getDomainFromUrl(item.url),
       };
     }
   };
@@ -125,7 +126,7 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start gap-3 mb-2">
+                  <div className="flex items-start gap-3">
                     <button
                       onClick={() => toggleReadStatus(item)}
                       disabled={updatingItems.has(item.id)}
@@ -141,7 +142,7 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                     <div className="flex-1 min-w-0">
                       <div
                         className={cn(
-                          "flex items-center gap-2 mb-1",
+                          "flex items-center gap-2",
                           item.is_read ? "line-through" : ""
                         )}
                       >
@@ -159,14 +160,22 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                         </a>
                         <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       </div>
-
-                      {subtitle && (
-                        <p className="text-sm text-muted-foreground truncate max-w-md text-ellipsis">
-                          {subtitle}
-                        </p>
-                      )}
                     </div>
                   </div>
+                  {subtitle && (
+                    <div className="flex flex-row items-center">
+                      <p className="text-sm text-muted-foreground truncate max-w-md text-ellipsis">
+                        {subtitle}
+                      </p>
+                      <CopyButton
+                        value={subtitle}
+                        className={cn(
+                          "relative m-0 top-0 bottom-0 left-0 right-0 ",
+                          "text-muted-foreground flex-shrink-0 cursor-pointer"
+                        )}
+                      />
+                    </div>
+                  )}
 
                   {/* {item.note && (
                     <p className="text-sm text-muted-foreground mb-2 text-pretty line-clamp-2">
@@ -180,7 +189,7 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                     </p>
                   )} */}
 
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {formatDate(item.created_at)}
@@ -196,7 +205,7 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
                     {item.tags && item.tags.length > 0 && (
                       <div className="flex  gap-1">
-                        <Tag className="h-3 w-3" />
+                        <Tag className="h-3 w-3 mt-1" />
                         <div className="flex gap-1 flex-wrap">
                           {item.tags.map((tag) => (
                             <Badge
