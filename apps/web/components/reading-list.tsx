@@ -16,6 +16,7 @@ import {
 import type { ReadLaterItem } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { getDomainFromUrl, truncateText } from "@/lib/url-metadata";
+import { cn } from "@workspace/ui/lib/utils";
 
 interface ReadingListProps {
   items: ReadLaterItem[];
@@ -138,12 +139,21 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                     </button>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div
+                        className={cn(
+                          "flex items-center gap-2 mb-1",
+                          item.is_read ? "line-through" : ""
+                        )}
+                      >
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-lg font-medium hover:text-primary transition-colors text-balance"
+                          className={cn(
+                            "text-lg font-medium hover:text-primary transition-colors",
+                            " text-balance  max-w-md text-ellipsis overflow-hidden",
+                            "text-nowrap"
+                          )}
                         >
                           {mainTitle}
                         </a>
@@ -151,24 +161,24 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                       </div>
 
                       {subtitle && (
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground truncate max-w-md text-ellipsis">
                           {subtitle}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  {item.note && (
+                  {/* {item.note && (
                     <p className="text-sm text-muted-foreground mb-2 text-pretty line-clamp-2">
                       {truncateText(item.note, 120)}
                     </p>
-                  )}
+                  )} */}
 
-                  {!item.note && item.fetched_description && (
+                  {/* {!item.note && item.fetched_description && (
                     <p className="text-sm text-muted-foreground mb-2 text-pretty line-clamp-2">
                       {truncateText(item.fetched_description, 120)}
                     </p>
-                  )}
+                  )} */}
 
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -185,9 +195,9 @@ export function ReadingList({ items, onUpdate }: ReadingListProps) {
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
                     {item.tags && item.tags.length > 0 && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex  gap-1">
                         <Tag className="h-3 w-3" />
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-wrap">
                           {item.tags.map((tag) => (
                             <Badge
                               key={tag.id}

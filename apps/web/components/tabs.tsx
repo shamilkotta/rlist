@@ -1,5 +1,5 @@
 import React from "react";
-import { Pagination } from "swiper/modules";
+import { Mousewheel, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import "swiper/css";
@@ -40,8 +40,12 @@ const Tabs = ({ gropus }: Props) => {
       <Swiper
         slidesPerView={"auto"}
         spaceBetween={30}
-        modules={[Pagination]}
+        modules={[Pagination, Mousewheel]}
         className="mySwiper"
+        mousewheel={{
+          enabled: true,
+          releaseOnEdges: true,
+        }}
       >
         {LIST.map((group, idx) => (
           <SwiperSlide
