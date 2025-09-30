@@ -30,7 +30,7 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar";
 import { Button } from "@workspace/ui/components/button";
-import { cn } from "@workspace/ui/lib/utils";
+import Tabs from "@/components/tabs";
 
 export default function HomePage() {
   const [items, setItems] = useState<ReadLaterItem[]>([]);
@@ -89,7 +89,7 @@ export default function HomePage() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen bg-background flex w-full">
-        <Sidebar className="hidden bg-transparent md:flex border-r border-border sticky">
+        <Sidebar className="hidden bg-transparent md:flex border-r border-border sticky flex-0">
           <SidebarHeader className=" mt-5 p-4">
             <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
               <DialogTrigger asChild>
@@ -122,8 +122,8 @@ export default function HomePage() {
           </SidebarContent>
         </Sidebar>
 
-        <SidebarInset className="flex-1">
-          <div className="container mx-auto  pb-8 pt-4">
+        <SidebarInset className="overflow-hidden">
+          <div className="container mx-auto flex-1 pb-8 pt-4 min-sm:max-w-full">
             <header className="flex items-center px-4 justify-between mb-4 border-b pb-2">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-balance">rlist</h1>
@@ -154,10 +154,10 @@ export default function HomePage() {
 
             <div className="px-4">
               <div className="mb-3 flex items-center gap-3">
-                {/* <SidebarTrigger
+                <SidebarTrigger
                   className="md:hidden flex items-center justify-center w-9 h-9 rounded-md border border-border bg-background"
                   icon={<Settings2 className="w-7 h-7" />}
-                /> */}
+                />
                 <SearchAndFilters
                   groups={groups}
                   tags={tags}
@@ -166,37 +166,7 @@ export default function HomePage() {
                 />
               </div>
 
-              <div className="flex flex-row mb-5 overflow-auto items-center mt-5 w-auto">
-                {groups.map((group, idx) => (
-                  <div key={group.id} className="flex flex-row">
-                    <div className="min-w-[150px] justify-center group px-2 cursor-pointer flex flex-col items-center">
-                      <h6
-                        className={cn(
-                          "text-sm text-muted-foreground",
-                          idx === 0 ? "font-bold" : "font-normal",
-                          idx === 0
-                            ? "text-foreground"
-                            : "text-muted-foreground",
-                          "group-hover:text-foreground text-center",
-                          "text-nowrap"
-                        )}
-                      >
-                        {group.name}
-                      </h6>
-                    </div>
-                    <div className="w-[1px] bg-border mx-1" />
-                  </div>
-                ))}
-                <div
-                  className={cn(
-                    "w-[50px] h-[25px] cursor-pointer flex flex-col items-center justify-center",
-                    " hover:bg-accent text-muted-foreground hover:text-foreground",
-                    "rounded"
-                  )}
-                >
-                  <Plus className="h-4 w-4" />
-                </div>
-              </div>
+              <Tabs gropus={groups} />
 
               {(filters.search ||
                 filters.groupId !== "all" ||

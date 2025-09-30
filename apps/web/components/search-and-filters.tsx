@@ -239,7 +239,7 @@ export function SearchAndFilters({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by title, URL, tags, or notes..."
+          placeholder="Search by title, URL or tags..."
           value={filters.search}
           onChange={(e) => updateFilters({ search: e.target.value })}
           className="pl-10 shadow-none focus-visible:ring-0"
