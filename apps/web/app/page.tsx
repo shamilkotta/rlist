@@ -12,7 +12,6 @@ import {
 import { Plus, BookOpen, Settings2 } from "lucide-react";
 import { AddUrlForm } from "@/components/add-url-form";
 import { ReadingList } from "@/components/reading-list";
-import { StatsOverview } from "@/components/stats-overview";
 import {
   SearchAndFilters,
   type FilterState,
@@ -107,11 +106,6 @@ export default function HomePage() {
             </Dialog>
           </SidebarHeader>
           <SidebarContent className="p-4">
-            <div className="mb-4">
-              <h3 className="font-semibold text-sm text-muted-foreground">
-                Filters
-              </h3>
-            </div>
             <SearchAndFilters
               groups={groups}
               tags={tags}

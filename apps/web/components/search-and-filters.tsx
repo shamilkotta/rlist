@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Input } from "@workspace/ui/components/input";
-import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Select,
@@ -11,21 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/popover";
-import {
-  Search,
-  Filter,
-  X,
-  Tag,
-  Folder,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
+import { Search, X, Tag, Folder, Clock, CheckCircle2 } from "lucide-react";
 import type { Group, Tag as TagType } from "@/lib/types";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@workspace/ui/components/radio-group";
+import { Label } from "@workspace/ui/components/label";
+import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button";
 
 export interface FilterState {
   search: string;
@@ -86,22 +79,27 @@ export function SearchAndFilters({
 
   if (variant === "sidebar") {
     return (
-      <div className="space-y-6">
-        {/* Filter Controls */}
-        <div className="space-y-4">
+      <div className="">
+        <div className="mb-4 flex flex-row justify-between items-center">
+          <h3 className="font-semibold text-sm text-muted-foreground">
+            Filters
+          </h3>
           {hasActiveFilters && (
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="shadow-none text-xs"
-              >
-                Clear all
-              </Button>
-            </div>
+            <Button
+              className={cn(
+                "text-xs text-foreground",
+                "h-fit px-2 py-0.5 cursor-pointer"
+              )}
+              variant={"ghost"}
+              size={"sm"}
+              onClick={clearAllFilters}
+            >
+              Clear all
+            </Button>
           )}
-
+        </div>
+        {/* Filter Controls */}
+        <div className="space-y-7">
           {/* Group Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
@@ -125,6 +123,18 @@ export function SearchAndFilters({
                 ))}
               </SelectContent>
             </Select>
+            {filters.groupId !== "all" && (
+              <Badge variant="secondary" className="gap-1 shadow-none">
+                <Folder className="h-3 w-3" />
+                {filters.groupId === "none"
+                  ? "No group"
+                  : groups.find((g) => g.id === filters.groupId)?.name ||
+                    "Unknown group"}
+                <button onClick={() => updateFilters({ groupId: "all" })}>
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
           </div>
 
           {/* Read Status Filter */}
@@ -133,19 +143,39 @@ export function SearchAndFilters({
               <Clock className="h-4 w-4" />
               Status
             </label>
-            <Select
-              value={filters.readStatus}
+
+            <RadioGroup
+              defaultValue={filters.readStatus}
               onValueChange={(value) => updateFilters({ readStatus: value })}
             >
-              <SelectTrigger className="shadow-none">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="shadow-none border border-border bg-card">
-                <SelectItem value="all">All items</SelectItem>
-                <SelectItem value="unread">Unread only</SelectItem>
-                <SelectItem value="read">Read only</SelectItem>
-              </SelectContent>
-            </Select>
+              <div
+                className={cn(
+                  "flex items-center space-x-2",
+                  filters.readStatus !== "unread" && "opacity-50"
+                )}
+              >
+                <RadioGroupItem value="unread" id="select-unread" />
+                <Label htmlFor="select-unread">Unread only</Label>
+              </div>
+              <div
+                className={cn(
+                  "flex items-center space-x-2",
+                  filters.readStatus !== "read" && "opacity-50"
+                )}
+              >
+                <RadioGroupItem value="read" id="select-read" />
+                <Label htmlFor="select-read">Read only</Label>
+              </div>
+              <div
+                className={cn(
+                  "flex items-center space-x-2",
+                  filters.readStatus !== "all" && "opacity-50"
+                )}
+              >
+                <RadioGroupItem value="all" id="select-all" />
+                <Label htmlFor="select-all">All items</Label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Tags Filter */}
@@ -155,7 +185,7 @@ export function SearchAndFilters({
                 <Tag className="h-4 w-4" />
                 Tags
               </label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
                   <Badge
                     key={tag.id}
@@ -170,61 +200,6 @@ export function SearchAndFilters({
                     {tag.name}
                   </Badge>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Active Filter Badges */}
-          {hasActiveFilters && (
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                {filters.groupId !== "all" && (
-                  <Badge variant="secondary" className="gap-1 shadow-none">
-                    <Folder className="h-3 w-3" />
-                    {filters.groupId === "none"
-                      ? "No group"
-                      : groups.find((g) => g.id === filters.groupId)?.name ||
-                        "Unknown group"}
-                    <button onClick={() => updateFilters({ groupId: "all" })}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-
-                {filters.readStatus !== "all" && (
-                  <Badge variant="secondary" className="gap-1 shadow-none">
-                    {filters.readStatus === "read" ? (
-                      <CheckCircle2 className="h-3 w-3" />
-                    ) : (
-                      <Clock className="h-3 w-3" />
-                    )}
-                    {filters.readStatus === "read" ? "Read" : "Unread"}
-                    <button
-                      onClick={() => updateFilters({ readStatus: "all" })}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-
-                {filters.selectedTags.map((tagId) => {
-                  const tag = tags.find((t) => t.id === tagId);
-                  if (!tag) return null;
-
-                  return (
-                    <Badge
-                      key={tagId}
-                      variant="secondary"
-                      className="gap-1 shadow-none"
-                    >
-                      <Tag className="h-3 w-3" />
-                      {tag.name}
-                      <button onClick={() => removeTag(tagId)}>
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  );
-                })}
               </div>
             </div>
           )}
