@@ -123,25 +123,6 @@ export default function HomePage() {
                 <h1 className="text-3xl font-bold text-balance">rlist</h1>
               </div>
               <div className="flex items-center gap-2">
-                <div className="md:hidden hidden">
-                  <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2 py-0" variant={"outline"}>
-                        <Plus className="h-4 w-4" />
-                        Add URL
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Add to Reading List</DialogTitle>
-                      </DialogHeader>
-                      <AddUrlForm
-                        groups={groups}
-                        onSuccess={handleAddSuccess}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
                 <ThemeToggle />
               </div>
             </header>
@@ -198,6 +179,22 @@ export default function HomePage() {
                 </Card>
               )}
             </div>
+          </div>
+
+          <div className="md:hidden fixed bottom-8 right-8 z-50">
+            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+              <DialogTrigger asChild>
+                <Button className="rounded-full p-0 w-12 h-12">
+                  <Plus className="size-6 font-bold" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add to Reading List</DialogTitle>
+                </DialogHeader>
+                <AddUrlForm groups={groups} onSuccess={handleAddSuccess} />
+              </DialogContent>
+            </Dialog>
           </div>
         </SidebarInset>
       </div>

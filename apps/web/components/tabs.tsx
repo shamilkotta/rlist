@@ -7,6 +7,15 @@ import "swiper/css/pagination";
 import { cn } from "@workspace/ui/lib/utils";
 import { Group } from "@/lib/types";
 import { Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu";
+import { Button } from "@workspace/ui/components/button";
 
 type Props = {
   gropus: Group[];
@@ -74,15 +83,42 @@ const Tabs = ({ gropus }: Props) => {
           className="max-w-[300px] w-fit border-l px-2"
           style={{ width: "fit-content" }}
         >
-          <div
-            className={cn(
-              "w-fit px-2 h-[25px] cursor-pointer flex flex-col items-center justify-center",
-              " hover:bg-accent text-muted-foreground hover:text-foreground",
-              "rounded"
-            )}
-          >
-            <Plus className="h-4 w-4" />
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-fit px-2 h-[25px] cursor-pointer flex flex-col items-center justify-center",
+                  "rounded focus-visible:ring-transparent"
+                )}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={false}
+                onCheckedChange={() => {}}
+              >
+                Status Bar
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={false}
+                onCheckedChange={() => {}}
+                disabled
+              >
+                Activity Bar
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={false}
+                onCheckedChange={() => {}}
+              >
+                Panel
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </SwiperSlide>
       </Swiper>
     </div>
