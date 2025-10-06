@@ -19,6 +19,7 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { SelectGroup } from "./select-group";
 
 export interface FilterState {
   search: string;
@@ -104,13 +105,15 @@ export function SearchAndFilters({
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
               <Folder className="h-4 w-4" />
-              Group
+              Groups
             </label>
-            <Select
+            <SelectGroup multiple />
+            {/* TODO: remove this */}
+            {/* <Select
               value={filters.groupId}
               onValueChange={(value) => updateFilters({ groupId: value })}
             >
-              <SelectTrigger className="shadow-none">
+              <SelectTrigger className="shadow-none w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="shadow-none border border-border bg-card">
@@ -122,7 +125,7 @@ export function SearchAndFilters({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
             {filters.groupId !== "all" && (
               <Badge variant="secondary" className="gap-1 shadow-none">
                 <Folder className="h-3 w-3" />

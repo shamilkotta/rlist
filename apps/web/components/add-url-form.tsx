@@ -26,6 +26,7 @@ import { X, Plus, Loader2 } from "lucide-react";
 import { createReadLaterItem, createGroup } from "@/lib/database";
 import { fetchUrlMetadata } from "@/lib/url-metadata";
 import type { Group } from "@/lib/types";
+import { SelectGroup } from "./select-group";
 
 interface AddUrlFormProps {
   groups: Group[];
@@ -50,6 +51,7 @@ export function AddUrlForm({
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [showNewGroupDialog, setShowNewGroupDialog] = useState(false);
+  const [isOgTitle, setIsOgTitle] = useState(true);
 
   const handleUrlChange = async (newUrl: string) => {
     setUrl(newUrl);
@@ -160,16 +162,28 @@ export function AddUrlForm({
             required
             className="shadow-none"
           />
-          {isFetchingTitle && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
-          )}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="title">Title (optional)</Label>
+        <div className="flex flex-row justify-between items-center">
+          <Label htmlFor="title">Title (optional)</Label>
+          {isFetchingTitle ? (
+            <div className="">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : !isOgTitle ? (
+            <div className="">
+              <Badge
+                variant={"secondary"}
+                className="cursor-pointer hover:bg-accent shadow-none"
+                onClick={() => {}}
+              >
+                Use original title
+              </Badge>
+            </div>
+          ) : null}
+        </div>
         <Input
           id="title"
           placeholder="Article title"
@@ -177,11 +191,6 @@ export function AddUrlForm({
           onChange={(e) => setTitle(e.target.value)}
           className="shadow-none"
         />
-        {isFetchingTitle && (
-          <p className="text-xs text-muted-foreground">
-            Fetching title from URL...
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -198,85 +207,7 @@ export function AddUrlForm({
 
       <div className="space-y-2">
         <Label>Group (optional)</Label>
-        <div className="flex gap-2">
-          <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-            <SelectTrigger className="flex-1 shadow-none">
-              <SelectValue placeholder="Select a group" />
-            </SelectTrigger>
-            <SelectContent className="shadow-none border border-border bg-card">
-              <SelectItem value="none">No group</SelectItem>
-              {groups.map((group) => (
-                <SelectItem key={group.id} value={group.id}>
-                  {group.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Dialog
-            open={showNewGroupDialog}
-            onOpenChange={setShowNewGroupDialog}
-          >
-            <DialogTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="shadow-none bg-transparent"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="shadow-none border border-border bg-card">
-              <DialogHeader>
-                <DialogTitle>Create New Group</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="group-name">Group Name *</Label>
-                  <Input
-                    id="group-name"
-                    placeholder="e.g., Tech Articles"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    className="shadow-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="group-description">
-                    Description (optional)
-                  </Label>
-                  <Textarea
-                    id="group-description"
-                    placeholder="Brief description of this group..."
-                    value={newGroupDescription}
-                    onChange={(e) => setNewGroupDescription(e.target.value)}
-                    rows={2}
-                    className="shadow-none"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowNewGroupDialog(false)}
-                    className="shadow-none"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleCreateGroup}
-                    disabled={!newGroupName.trim() || isCreatingGroup}
-                    className="shadow-none"
-                  >
-                    {isCreatingGroup ? "Creating..." : "Create Group"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <SelectGroup isCreatingGroup={isCreatingGroup} allowCustom />
       </div>
 
       <div className="space-y-2">
