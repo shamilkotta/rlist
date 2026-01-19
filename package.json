@@ -1,22 +1,30 @@
 {
-  "name": "shadcn-ui-monorepo",
+  "name": "rlist",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "dev": "turbo run dev",
+    "dev:convex": "convex dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "typecheck": "turbo run typecheck",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "convex": "^1.17.4"
   },
   "devDependencies": {
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
-    "prettier": "^3.6.2",
-    "turbo": "^2.5.5",
-    "typescript": "5.7.3"
+    "@biomejs/biome": "^1.9.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
   },
-  "packageManager": "pnpm@10.4.1",
-  "engines": {
-    "node": ">=20"
-  }
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md}": ["biome check --write --no-errors-on-unmatched"]
+  },
+  "packageManager": "pnpm@9.15.2"
 }
