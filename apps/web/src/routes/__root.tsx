@@ -3,7 +3,7 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 
 import { ConvexClientProvider } from '../components/ConvexClientProvider';
-import Header from '../components/Header';
+import 'geist/style/css/geist.css';
 
 import appCss from '../styles.css?url';
 
@@ -38,11 +38,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        <ConvexClientProvider>
-          <Header />
-          {children}
-        </ConvexClientProvider>
+      <body className="m-0 antialiased text-slate-900 bg-white">
+        <ConvexClientProvider>{children}</ConvexClientProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

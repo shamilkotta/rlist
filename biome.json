@@ -58,7 +58,8 @@
       ".vinxi",
       ".turbo",
       "convex/_generated",
-      "*.min.js"
+      "*.min.js",
+      "**/routeTree.gen.ts"
     ]
   },
   "overrides": [

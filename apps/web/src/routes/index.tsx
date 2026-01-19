@@ -1,106 +1,274 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Route as RouteIcon, Server, Shield, Sparkles, Waves, Zap } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Bell,
+  ChevronDown,
+  LayoutGrid,
+  List,
+  Plus,
+  Search,
+  Settings,
+} from 'lucide-react';
+import { ArticleCard } from '../components/ArticleCard';
 
-export const Route = createFileRoute('/')({ component: App });
+export const Route = createFileRoute('/')({ component: Home });
 
-function App() {
-  const features = [
+function Home() {
+  const articles = [
     {
-      icon: <Zap className="w-12 h-12 text-cyan-400" />,
-      title: 'Powerful Server Functions',
+      id: 1,
+      title: 'React Server Components: A Comprehensive Guide',
       description:
-        'Write server-side code that seamlessly integrates with your client components. Type-safe, secure, and simple.',
+        'Understanding the mental model of Server Components and how they fundamentally change data fetching in modern React applications.',
+      domain: 'react.dev',
+      date: '2h ago',
+      tags: ['FRONTEND'],
+      faviconUrl: 'https://react.dev/favicon.ico',
     },
     {
-      icon: <Server className="w-12 h-12 text-cyan-400" />,
-      title: 'Flexible Server Side Rendering',
+      id: 2,
+      title: 'Designing reliable systems for scale',
       description:
-        'Full-document SSR, streaming, and progressive enhancement out of the box. Control exactly what renders where.',
+        'How Stripe engineered their API to handle Black Friday traffic with 99.999% uptime through intelligent load balancing.',
+      domain: 'stripe.com',
+      date: 'Dec 14',
+      tags: ['SYSTEM DESIGN'],
+      faviconUrl: 'https://stripe.com/favicon.ico',
     },
     {
-      icon: <RouteIcon className="w-12 h-12 text-cyan-400" />,
-      title: 'API Routes',
+      id: 3,
+      title: 'The craft of interaction design',
       description:
-        'Build type-safe API endpoints alongside your application. No separate backend needed.',
+        "Why micro-interactions matter more than you think. A deep dive into the philosophy behind Linear's smooth user experience.",
+      domain: 'linear.app',
+      date: 'Dec 12',
+      tags: ['UX/UI'],
+      faviconUrl: 'https://linear.app/favicon.ico',
     },
     {
-      icon: <Shield className="w-12 h-12 text-cyan-400" />,
-      title: 'Strongly Typed Everything',
+      id: 4,
+      title: 'Zero-config backends on AI Cloud',
       description:
-        'End-to-end type safety from server to client. Catch errors before they reach production.',
+        'Building agents should feel like shaping an idea rather than fighting a maze of code or infrastructure.',
+      domain: 'vercel.com',
+      date: 'Dec 10',
+      tags: ['ENGINEERING', 'AI'],
+      faviconUrl: 'https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico',
     },
     {
-      icon: <Waves className="w-12 h-12 text-cyan-400" />,
-      title: 'Full Streaming Support',
+      id: 5,
+      title: 'Optimizing large language models',
       description:
-        'Stream data from server to client progressively. Perfect for AI applications and real-time updates.',
+        'Techniques for reducing latency and token costs when deploying LLMs in production environments.',
+      domain: 'openai.com',
+      date: 'Dec 08',
+      tags: ['AI', 'ML'],
+      faviconUrl: 'https://openai.com/favicon.ico',
     },
     {
-      icon: <Sparkles className="w-12 h-12 text-cyan-400" />,
-      title: 'Next Generation Ready',
+      id: 6,
+      title: 'Rust 1.75.0 Release Notes',
       description:
-        'Built from the ground up for modern web applications. Deploy anywhere JavaScript runs.',
+        'Async functions in traits, new stabilization features, and performance improvements for the compiler.',
+      domain: 'rust-lang.org',
+      date: 'Dec 05',
+      tags: ['BACKEND'],
+      faviconUrl: 'https://www.rust-lang.org/static/images/favicon.svg',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <section className="relative py-20 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
-        <div className="relative max-w-5xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <img
-              src="/tanstack-circle-logo.png"
-              alt="TanStack Logo"
-              className="w-24 h-24 md:w-32 md:h-32"
-            />
-            <h1 className="text-6xl md:text-7xl font-black text-white [letter-spacing:-0.08em]">
-              <span className="text-gray-300">TANSTACK</span>{' '}
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                START
-              </span>
-            </h1>
-          </div>
-          <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-            The framework for next generation AI applications
-          </p>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-            Full-stack framework powered by TanStack Router for React and Solid. Build modern
-            applications with server functions, streaming, and type safety.
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <a
-              href="https://tanstack.com/start"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
-            >
-              Documentation
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-gray-100">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 h-[60px]">
+        <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <a href="/" className="flex items-center gap-2.5 group">
+              <div className="w-6 h-6 bg-black rounded-[6px] flex items-center justify-center group-hover:bg-gray-900 transition-colors">
+                <ArrowUpRight className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-[17px] font-bold tracking-tight text-gray-900">ReadList</span>
             </a>
-            <p className="text-gray-400 text-sm mt-2">
-              Begin your TanStack Start journey by editing{' '}
-              <code className="px-2 py-1 bg-slate-700 rounded text-cyan-400">
-                /src/routes/index.tsx
-              </code>
-            </p>
+
+            <nav className="hidden md:flex items-center gap-6 ml-2">
+              {['Dashboard', 'Discover', 'Analytics'].map((item) => (
+                <a
+                  key={item}
+                  href="/"
+                  className={`text-[14px] font-medium transition-colors ${
+                    item === 'Discover' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {item}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative hidden sm:block group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="pl-9 pr-4 py-1.5 w-[240px] bg-gray-50/50 border border-transparent hover:border-gray-200 rounded-md text-[13px] focus:bg-white focus:border-gray-200 focus:outline-none focus:ring-0 transition-all duration-200 placeholder:text-gray-400"
+              />
+            </div>
+
+            <button
+              type="button"
+              className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center transition-colors"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
+            >
+              <div className="w-full h-full rounded-full bg-gradient-to-tr from-slate-700 to-slate-800" />
+            </button>
           </div>
         </div>
-      </section>
+      </header>
 
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
+      {/* Main Content */}
+      <main className="max-w-[1400px] mx-auto px-6 pb-20">
+        {/* Hero Section */}
+        <section className="pt-32 pb-24 flex flex-col items-center text-center max-w-2xl mx-auto">
+          <h1 className="text-[56px] font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
+            Curate your{' '}
+            <span className="relative inline-block text-gray-900 border-b-[6px] border-gray-100/80 leading-[0.8] pb-1">
+              knowledge base.
+            </span>
+          </h1>
+          <p className="text-[19px] text-gray-500 max-w-lg mb-12 leading-relaxed font-normal">
+            Save articles, documentation, and videos for later reading. Organized and
+            distraction-free.
+          </p>
+
+          <div className="w-full max-w-[520px] relative flex items-center group">
+            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-300"
+              >
+                <title>Link icon</title>
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Paste a URL to save..."
+              className="w-full pl-14 pr-28 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] text-[16px] placeholder:text-gray-400 focus:border-gray-300 focus:ring-4 focus:ring-gray-50 focus:outline-none transition-all duration-300"
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-2 bottom-2 bg-black text-white px-5 rounded-lg font-medium text-[13px] hover:bg-gray-800 focus:ring-4 focus:ring-gray-100 transition-all duration-200 shadow-sm"
             >
-              <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-              <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+              Add URL
+            </button>
+            <div className="absolute -right-16 top-1/2 -translate-y-1/2 hidden lg:block opacity-20 hover:opacity-100 transition-opacity cursor-pointer">
+              <Plus className="w-6 h-6 text-gray-400" />
+            </div>
+          </div>
+        </section>
+
+        {/* Filters */}
+        <div className="sticky top-[60px] z-40 bg-white/90 backdrop-blur-md py-6 mb-8 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-1">
+                {['All Items', 'Unread', 'Archive'].map((tab, i) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    className={`relative px-1 py-1 text-[14px] font-medium transition-colors ${
+                      i === 0
+                        ? 'text-gray-900 after:absolute after:bottom-[-25px] after:left-0 after:w-full after:h-[2px] after:bg-gray-900'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="h-4 w-px bg-gray-200" />
+
+              <button
+                type="button"
+                className="flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-900 transition-colors"
+              >
+                Tags <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                className="p-1.5 rounded text-gray-900 hover:bg-gray-50 transition-colors"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                className="p-1.5 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {articles.map((article) => (
+            <div key={article.id} className="h-full">
+              <ArticleCard {...article} />
             </div>
           ))}
         </div>
-      </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-100 bg-white mt-20 py-12">
+        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5 text-gray-400 text-[13px] font-medium">
+            <div className="w-5 h-5 bg-gray-100 rounded flex items-center justify-center">
+              <ArrowUpRight className="w-2.5 h-2.5 text-gray-400" />
+            </div>
+            <span>ReadList © 2024</span>
+          </div>
+
+          <div className="flex items-center gap-8 text-[13px] text-gray-500 font-medium">
+            <a href="/" className="hover:text-gray-900 transition-colors">
+              Privacy
+            </a>
+            <a href="/" className="hover:text-gray-900 transition-colors">
+              Terms
+            </a>
+            <a href="/" className="hover:text-gray-900 transition-colors">
+              GitHub
+            </a>
+            <a href="/" className="hover:text-gray-900 transition-colors">
+              Contact
+            </a>
+          </div>
+
+          <button type="button" className="p-2 text-gray-300 hover:text-gray-900 transition-colors">
+            <Settings className="w-4 h-4" />
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }
