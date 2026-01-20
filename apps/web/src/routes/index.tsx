@@ -1,106 +1,367 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Route as RouteIcon, Server, Shield, Sparkles, Waves, Zap } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Bell,
+  ChevronDown,
+  Grid3X3,
+  Link2,
+  List,
+  Search,
+  Settings,
+} from 'lucide-react';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/')({ component: App });
 
+const articles = [
+  {
+    id: 1,
+    favicon: 'https://react.dev/favicon.ico',
+    domain: 'react.dev',
+    date: '2h ago',
+    title: 'React Server Components: A Comprehensive Guide',
+    description:
+      'Understanding the mental model of Server Components and how they fundamentally change data fetching in modern React applications.',
+    tags: [{ label: 'FRONTEND', color: 'bg-gray-100 text-gray-700' }],
+  },
+  {
+    id: 2,
+    favicon: 'https://stripe.com/favicon.ico',
+    domain: 'stripe.com',
+    date: 'Dec 14',
+    title: 'Designing reliable systems for scale',
+    description:
+      'How Stripe engineered their API to handle Black Friday traffic with 99.999% uptime through intelligent load balancing.',
+    tags: [{ label: 'SYSTEM DESIGN', color: 'bg-gray-100 text-gray-700' }],
+  },
+  {
+    id: 3,
+    favicon: 'https://linear.app/favicon.ico',
+    domain: 'linear.app',
+    date: 'Dec 12',
+    title: 'The craft of interaction design',
+    description:
+      "Why micro-interactions matter more than you think. A deep dive into the philosophy behind Linear's smooth user experience.",
+    tags: [{ label: 'UX/UI', color: 'bg-gray-100 text-gray-700' }],
+  },
+  {
+    id: 4,
+    favicon: 'https://vercel.com/favicon.ico',
+    domain: 'vercel.com',
+    date: 'Dec 10',
+    title: 'Zero-config backends on AI Cloud',
+    description:
+      'Building agents should feel like shaping an idea rather than fighting a maze of code or infrastructure.',
+    tags: [
+      { label: 'ENGINEERING', color: 'bg-gray-100 text-gray-700' },
+      { label: 'AI', color: 'bg-gray-100 text-gray-700' },
+    ],
+  },
+  {
+    id: 5,
+    favicon: 'https://openai.com/favicon.ico',
+    domain: 'openai.com',
+    date: 'Dec 08',
+    title: 'Optimizing large language models',
+    description:
+      'Techniques for reducing latency and token costs when deploying LLMs in production environments.',
+    tags: [
+      { label: 'AI', color: 'bg-gray-100 text-gray-700' },
+      { label: 'ML', color: 'bg-gray-100 text-gray-700' },
+    ],
+  },
+  {
+    id: 6,
+    favicon: 'https://rust-lang.org/favicon.ico',
+    domain: 'rust-lang.org',
+    date: 'Dec 05',
+    title: 'Rust 1.75.0 Release Notes',
+    description:
+      'Async functions in traits, new stabilization features, and performance improvements for the compiler.',
+    tags: [{ label: 'BACKEND', color: 'bg-gray-100 text-gray-700' }],
+  },
+];
+
 function App() {
-  const features = [
-    {
-      icon: <Zap className="w-12 h-12 text-cyan-400" />,
-      title: 'Powerful Server Functions',
-      description:
-        'Write server-side code that seamlessly integrates with your client components. Type-safe, secure, and simple.',
-    },
-    {
-      icon: <Server className="w-12 h-12 text-cyan-400" />,
-      title: 'Flexible Server Side Rendering',
-      description:
-        'Full-document SSR, streaming, and progressive enhancement out of the box. Control exactly what renders where.',
-    },
-    {
-      icon: <RouteIcon className="w-12 h-12 text-cyan-400" />,
-      title: 'API Routes',
-      description:
-        'Build type-safe API endpoints alongside your application. No separate backend needed.',
-    },
-    {
-      icon: <Shield className="w-12 h-12 text-cyan-400" />,
-      title: 'Strongly Typed Everything',
-      description:
-        'End-to-end type safety from server to client. Catch errors before they reach production.',
-    },
-    {
-      icon: <Waves className="w-12 h-12 text-cyan-400" />,
-      title: 'Full Streaming Support',
-      description:
-        'Stream data from server to client progressively. Perfect for AI applications and real-time updates.',
-    },
-    {
-      icon: <Sparkles className="w-12 h-12 text-cyan-400" />,
-      title: 'Next Generation Ready',
-      description:
-        'Built from the ground up for modern web applications. Deploy anywhere JavaScript runs.',
-    },
-  ];
+  const [activeTab, setActiveTab] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <section className="relative py-20 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
-        <div className="relative max-w-5xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <img
-              src="/tanstack-circle-logo.png"
-              alt="TanStack Logo"
-              className="w-24 h-24 md:w-32 md:h-32"
-            />
-            <h1 className="text-6xl md:text-7xl font-black text-white [letter-spacing:-0.08em]">
-              <span className="text-gray-300">TANSTACK</span>{' '}
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                START
-              </span>
-            </h1>
-          </div>
-          <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-            The framework for next generation AI applications
-          </p>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-            Full-stack framework powered by TanStack Router for React and Solid. Build modern
-            applications with server functions, streaming, and type safety.
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <a
-              href="https://tanstack.com/start"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
-            >
-              Documentation
-            </a>
-            <p className="text-gray-400 text-sm mt-2">
-              Begin your TanStack Start journey by editing{' '}
-              <code className="px-2 py-1 bg-slate-700 rounded text-cyan-400">
-                /src/routes/index.tsx
-              </code>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
-            >
-              <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-              <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <header className="border-b border-gray-100 bg-white sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14">
+            {/* Logo and Nav */}
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-gray-900 rounded-full flex items-center justify-center">
+                  <ArrowUpRight className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-semibold text-gray-900 text-lg">ReadList</span>
+              </div>
+              <nav className="hidden md:flex items-center gap-6">
+                <a
+                  href="/dashboard"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Dashboard
+                </a>
+                <a
+                  href="/discover"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Discover
+                </a>
+                <a
+                  href="/analytics"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Analytics
+                </a>
+              </nav>
             </div>
-          ))}
+
+            {/* Search and Actions */}
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center bg-gray-50 rounded-lg px-3 py-2 w-48 lg:w-56">
+                <Search className="w-4 h-4 text-gray-400 mr-2" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none w-full"
+                />
+              </div>
+              <button
+                type="button"
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <Bell className="w-5 h-5" />
+              </button>
+              <div className="w-8 h-8 bg-gray-800 rounded-full" />
+            </div>
+          </div>
         </div>
-      </section>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="pt-16 pb-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-5xl font-semibold text-gray-900 tracking-tight mb-4">
+              Curate your knowledge base.
+            </h1>
+            <p className="text-gray-500 text-lg mb-8 leading-relaxed">
+              Save articles, documentation, and videos for later reading.
+              <br className="hidden sm:block" />
+              Organized and distraction-free.
+            </p>
+
+            {/* URL Input */}
+            <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1.5 pl-4 max-w-xl mx-auto shadow-sm">
+              <Link2 className="w-5 h-5 text-gray-400 mr-3 shrink-0" />
+              <input
+                type="url"
+                placeholder="Paste a URL to save..."
+                className="flex-1 text-gray-600 placeholder-gray-400 outline-none text-sm sm:text-base min-w-0"
+              />
+              <button
+                type="button"
+                className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0"
+              >
+                Add URL
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Tabs and Filters */}
+        <section className="border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('all')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    activeTab === 'all'
+                      ? 'border-gray-900 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  All Items
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('unread')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    activeTab === 'unread'
+                      ? 'border-gray-900 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Unread
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('archive')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    activeTab === 'archive'
+                      ? 'border-gray-900 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Archive
+                </button>
+                <button
+                  type="button"
+                  className="flex items-center gap-1 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap"
+                >
+                  Tags
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* View Toggle */}
+              <div className="hidden sm:flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'grid'
+                      ? 'text-gray-900 bg-gray-100'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <Grid3X3 className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'list'
+                      ? 'text-gray-900 bg-gray-100'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <List className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Articles Grid */}
+        <section className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div
+              className={`grid gap-4 ${
+                viewMode === 'grid'
+                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                  : 'grid-cols-1 max-w-3xl'
+              }`}
+            >
+              {articles.map((article) => (
+                <article
+                  key={article.id}
+                  className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={article.favicon}
+                        alt=""
+                        className="w-5 h-5 rounded"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E";
+                        }}
+                      />
+                      <span className="text-sm text-gray-500">{article.domain}</span>
+                    </div>
+                    <span className="text-sm text-gray-400">{article.date}</span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors leading-snug">
+                    {article.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4 line-clamp-3">
+                    {article.description}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {article.tags.map((tag) => (
+                      <span
+                        key={tag.label}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-md ${tag.color}`}
+                      >
+                        {tag.label}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-100 bg-white mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between py-6 gap-4">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center">
+                <ArrowUpRight className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-sm text-gray-500">ReadList © 2024</span>
+            </div>
+
+            {/* Links */}
+            <nav className="flex items-center gap-6">
+              <a
+                href="/privacy"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Privacy
+              </a>
+              <a
+                href="/terms"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Terms
+              </a>
+              <a
+                href="https://github.com"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                GitHub
+              </a>
+              <a
+                href="/contact"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Contact
+              </a>
+            </nav>
+
+            {/* Settings */}
+            <button
+              type="button"
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
