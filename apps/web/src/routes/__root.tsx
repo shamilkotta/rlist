@@ -3,7 +3,6 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 
 import { ConvexClientProvider } from '../components/ConvexClientProvider';
-import 'geist/style/css/geist.css';
 
 import appCss from '../styles.css?url';
 

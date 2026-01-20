@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
+@import "@fontsource/geist-sans";
+
 :root {
-  --font-geist: "Geist", "Inter", sans-serif;
+  --font-geist: "Geist Sans", "Inter", sans-serif;
 }
 
 body {

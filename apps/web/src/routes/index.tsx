@@ -78,7 +78,7 @@ function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-gray-100">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 h-[60px]">
         <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center justify-between">
