@@ -75,6 +75,56 @@ function Home() {
       tags: ['BACKEND'],
       faviconUrl: 'https://www.rust-lang.org/static/images/favicon.svg',
     },
+    {
+      id: 7,
+      title: 'Advanced Prototyping with Variables',
+      description:
+        'How to use Figma variables to create realistic prototypes with logic, expressions, and dynamic state management.',
+      domain: 'figma.com',
+      date: 'Dec 03',
+      tags: ['DESIGN'],
+      faviconUrl: 'https://static.figma.com/app/icon/1/favicon.png',
+    },
+    {
+      id: 8,
+      title: 'Tailwind CSS v4.0: The Future of styling',
+      description:
+        'A sneak peek into the new engine, zero-runtime overhead, and simplified configuration coming in the next major version.',
+      domain: 'tailwindcss.com',
+      date: 'Dec 01',
+      tags: ['CSS', 'FRONTEND'],
+      faviconUrl: 'https://tailwindcss.com/favicon.ico',
+    },
+    {
+      id: 9,
+      title: 'Supabase is now General Availability',
+      description:
+        'The open source Firebase alternative declares GA. What this means for enterprise adoption and future roadmap.',
+      domain: 'supabase.com',
+      date: 'Nov 28',
+      tags: ['DATABASE', 'BACKEND'],
+      faviconUrl: 'https://supabase.com/favicon.ico',
+    },
+    {
+      id: 10,
+      title: 'Drizzle ORM: SQL-like elegance',
+      description:
+        'Why developers are switching to Drizzle for its widespread type safety, lightweight footprint, and zero dependencies.',
+      domain: 'orm.drizzle.team',
+      date: 'Nov 25',
+      tags: ['DATABASE'],
+      faviconUrl: 'https://orm.drizzle.team/favicon.ico',
+    },
+    {
+      id: 11,
+      title: 'View Transitions in Astro 3.0',
+      description:
+        'Seamless page navigation without a full page reload. Native browser APIs making SPAs obsolete?',
+      domain: 'astro.build',
+      date: 'Nov 22',
+      tags: ['FRONTEND'],
+      faviconUrl: 'https://astro.build/favicon.ico',
+    },
   ];
 
   return (
@@ -133,9 +183,9 @@ function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[1400px] mx-auto px-6 pb-20">
+      <main className="pb-20">
         {/* Hero Section */}
-        <section className="pt-32 pb-24 flex flex-col items-center text-center max-w-2xl mx-auto">
+        <section className="max-w-[1400px] mx-auto px-6 pt-32 pb-24 flex flex-col items-center text-center">
           <h1 className="text-[56px] font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
             Curate your{' '}
             <span className="relative inline-block text-gray-900 border-b-[6px] border-gray-100/80 leading-[0.8] pb-1">
@@ -183,59 +233,56 @@ function Home() {
         </section>
 
         {/* Filters */}
-        <div className="sticky top-[60px] z-40 bg-white/90 backdrop-blur-md py-6 mb-8 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-1">
+        <div className="sticky top-[60px] z-40 bg-white/90 backdrop-blur-md pt-4 border-y border-gray-200 mb-0 w-full">
+          <div className="max-w-[1400px] mx-auto px-6">
+            <div className="flex items-center justify-between pb-0">
+              <div className="flex items-center gap-8">
                 {['All Items', 'Unread', 'Archive'].map((tab, i) => (
                   <button
                     key={tab}
                     type="button"
-                    className={`relative px-1 py-1 text-[14px] font-medium transition-colors ${
+                    className={`pb-4 -mb-px text-[14px] font-medium transition-colors border-b-2 ${
                       i === 0
-                        ? 'text-gray-900 after:absolute after:bottom-[-25px] after:left-0 after:w-full after:h-[2px] after:bg-gray-900'
-                        : 'text-gray-500 hover:text-gray-900'
+                        ? 'text-gray-900 border-gray-900'
+                        : 'text-gray-500 border-transparent hover:text-gray-900'
                     }`}
                   >
                     {tab}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className="pb-4 -mb-px flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-900 transition-colors border-b-2 border-transparent"
+                >
+                  Tags <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                </button>
               </div>
 
-              <div className="h-4 w-px bg-gray-200" />
-
-              <button
-                type="button"
-                className="flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-900 transition-colors"
-              >
-                Tags <ChevronDown className="w-3.5 h-3.5 opacity-50" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                className="p-1.5 rounded text-gray-900 hover:bg-gray-50 transition-colors"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="p-1.5 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              >
-                <List className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1 mb-2">
+                <button
+                  type="button"
+                  className="p-1.5 rounded text-gray-900 hover:bg-gray-50 transition-colors"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  className="p-1.5 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article) => (
-            <div key={article.id} className="h-full">
-              <ArticleCard {...article} />
-            </div>
-          ))}
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dotted border-gray-200">
+            {articles.map((article) => (
+              <ArticleCard key={article.id} {...article} />
+            ))}
+          </div>
         </div>
       </main>
 

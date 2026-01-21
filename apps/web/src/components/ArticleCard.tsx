@@ -17,7 +17,7 @@ export function ArticleCard({
   faviconUrl,
 }: ArticleCardProps) {
   return (
-    <div className="group relative bg-white border border-gray-100 rounded-xl p-8 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-gray-200 transition-all duration-200 flex flex-col h-full cursor-pointer">
+    <div className="group bg-white h-full p-8 hover:bg-gray-50 transition-colors cursor-pointer flex flex-col border-r border-dotted border-gray-200">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 rounded-[4px] bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
