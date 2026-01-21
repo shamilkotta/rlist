@@ -1,14 +1,6 @@
+import { Button, Input, ModeToggle } from '@repo/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import {
-  ArrowUpRight,
-  Bell,
-  ChevronDown,
-  LayoutGrid,
-  List,
-  Plus,
-  Search,
-  Settings,
-} from 'lucide-react';
+import { ArrowUpRight, Bell, ChevronDown, LayoutGrid, List, Plus, Search } from 'lucide-react';
 import { ArticleCard } from '../components/ArticleCard';
 
 export const Route = createFileRoute('/')({ component: Home });
@@ -128,16 +120,16 @@ function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-gray-100">
+    <div className="min-h-screen bg-background text-foreground selection:bg-muted">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 h-[60px]">
+      <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border h-[60px]">
         <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-8">
             <a href="/" className="flex items-center gap-2.5 group">
-              <div className="w-6 h-6 bg-black rounded-[6px] flex items-center justify-center group-hover:bg-gray-900 transition-colors">
-                <ArrowUpRight className="w-3.5 h-3.5 text-white" />
+              <div className="w-6 h-6 bg-primary rounded-[6px] flex items-center justify-center group-hover:bg-primary/90 transition-colors">
+                <ArrowUpRight className="w-3.5 h-3.5 text-primary-foreground" />
               </div>
-              <span className="text-[17px] font-bold tracking-tight text-gray-900">ReadList</span>
+              <span className="text-[17px] font-bold tracking-tight text-foreground">ReadList</span>
             </a>
 
             <nav className="hidden md:flex items-center gap-6 ml-2">
@@ -146,7 +138,9 @@ function Home() {
                   key={item}
                   href="/"
                   className={`text-[14px] font-medium transition-colors ${
-                    item === 'Discover' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                    item === 'Discover'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {item}
@@ -157,26 +151,23 @@ function Home() {
 
           <div className="flex items-center gap-3">
             <div className="relative hidden sm:block group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
-              <input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+              <Input
                 type="text"
                 placeholder="Search..."
-                className="pl-9 pr-4 py-1.5 w-[240px] bg-gray-50/50 border border-transparent hover:border-gray-200 rounded-md text-[13px] focus:bg-white focus:border-gray-200 focus:outline-none focus:ring-0 transition-all duration-200 placeholder:text-gray-400"
+                className="pl-9 pr-4 py-1.5 w-[240px] bg-muted/50 border-transparent hover:border-border text-[13px] focus:bg-background focus:border-border placeholder:text-muted-foreground"
               />
             </div>
 
-            <button
-              type="button"
-              className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center transition-colors"
-            >
+            <Button variant="ghost" size="icon" className="rounded-full">
               <Bell className="w-4 h-4" />
-            </button>
+            </Button>
 
             <button
               type="button"
-              className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
+              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
             >
-              <div className="w-full h-full rounded-full bg-gradient-to-tr from-slate-700 to-slate-800" />
+              <div className="w-full h-full rounded-full bg-gradient-to-tr from-primary/70 to-primary/90" />
             </button>
           </div>
         </div>
@@ -186,13 +177,13 @@ function Home() {
       <main className="pb-20">
         {/* Hero Section */}
         <section className="max-w-[1400px] mx-auto px-6 pt-32 pb-24 flex flex-col items-center text-center">
-          <h1 className="text-[56px] font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
+          <h1 className="text-[56px] font-bold tracking-tight text-foreground mb-6 leading-[1.1]">
             Curate your{' '}
-            <span className="relative inline-block text-gray-900 border-b-[6px] border-gray-100/80 leading-[0.8] pb-1">
+            <span className="relative inline-block text-foreground border-b-[6px] border-muted leading-[0.8] pb-1">
               knowledge base.
             </span>
           </h1>
-          <p className="text-[19px] text-gray-500 max-w-lg mb-12 leading-relaxed font-normal">
+          <p className="text-[19px] text-muted-foreground max-w-lg mb-12 leading-relaxed font-normal">
             Save articles, documentation, and videos for later reading. Organized and
             distraction-free.
           </p>
@@ -208,32 +199,29 @@ function Home() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-gray-300"
+                className="text-muted-foreground/50"
               >
                 <title>Link icon</title>
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
             </div>
-            <input
+            <Input
               type="text"
               placeholder="Paste a URL to save..."
-              className="w-full pl-14 pr-28 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] text-[16px] placeholder:text-gray-400 focus:border-gray-300 focus:ring-4 focus:ring-gray-50 focus:outline-none transition-all duration-300"
+              className="w-full pl-14 pr-28 py-4 h-auto bg-background border-border rounded-xl shadow-sm text-[16px] placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/10"
             />
-            <button
-              type="button"
-              className="absolute right-2 top-2 bottom-2 bg-black text-white px-5 rounded-lg font-medium text-[13px] hover:bg-gray-800 focus:ring-4 focus:ring-gray-100 transition-all duration-200 shadow-sm"
-            >
+            <Button className="absolute right-2 top-2 bottom-2 h-auto px-5 rounded-lg font-medium text-[13px]">
               Add URL
-            </button>
+            </Button>
             <div className="absolute -right-16 top-1/2 -translate-y-1/2 hidden lg:block opacity-20 hover:opacity-100 transition-opacity cursor-pointer">
-              <Plus className="w-6 h-6 text-gray-400" />
+              <Plus className="w-6 h-6 text-muted-foreground" />
             </div>
           </div>
         </section>
 
         {/* Filters */}
-        <div className="sticky top-[60px] z-40 bg-white/90 backdrop-blur-md pt-4 border-y border-gray-200 mb-0 w-full">
+        <div className="sticky top-[60px] z-40 bg-background/90 backdrop-blur-md pt-4 border-y border-border mb-0 w-full">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex items-center justify-between pb-0">
               <div className="flex items-center gap-8">
@@ -243,8 +231,8 @@ function Home() {
                     type="button"
                     className={`pb-4 -mb-px text-[14px] font-medium transition-colors border-b-2 ${
                       i === 0
-                        ? 'text-gray-900 border-gray-900'
-                        : 'text-gray-500 border-transparent hover:text-gray-900'
+                        ? 'text-foreground border-foreground'
+                        : 'text-muted-foreground border-transparent hover:text-foreground'
                     }`}
                   >
                     {tab}
@@ -252,25 +240,19 @@ function Home() {
                 ))}
                 <button
                   type="button"
-                  className="pb-4 -mb-px flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-900 transition-colors border-b-2 border-transparent"
+                  className="pb-4 -mb-px flex items-center gap-1.5 text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
                 >
                   Tags <ChevronDown className="w-3.5 h-3.5 opacity-50" />
                 </button>
               </div>
 
               <div className="flex items-center gap-1 mb-2">
-                <button
-                  type="button"
-                  className="p-1.5 rounded text-gray-900 hover:bg-gray-50 transition-colors"
-                >
+                <Button variant="ghost" size="icon" className="h-8 w-8">
                   <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1.5 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                >
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                   <List className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -278,7 +260,7 @@ function Home() {
 
         {/* Grid */}
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dotted border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border">
             {articles.map((article) => (
               <ArticleCard key={article.id} {...article} />
             ))}
@@ -287,33 +269,30 @@ function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white mt-20 py-12">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5 text-gray-400 text-[13px] font-medium">
-            <div className="w-5 h-5 bg-gray-100 rounded flex items-center justify-center">
-              <ArrowUpRight className="w-2.5 h-2.5 text-gray-400" />
+      <footer className="border-t border-border bg-background py-4">
+        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5 text-muted-foreground text-[13px] font-medium">
+            <div className="w-5 h-5 bg-muted rounded flex items-center justify-center">
+              <ArrowUpRight className="w-2.5 h-2.5 text-muted-foreground" />
             </div>
             <span>ReadList © 2024</span>
           </div>
 
-          <div className="flex items-center gap-8 text-[13px] text-gray-500 font-medium">
-            <a href="/" className="hover:text-gray-900 transition-colors">
+          <div className="flex items-center gap-6 text-[13px] text-muted-foreground font-medium">
+            <a href="/" className="hover:text-foreground transition-colors">
               Privacy
             </a>
-            <a href="/" className="hover:text-gray-900 transition-colors">
+            <a href="/" className="hover:text-foreground transition-colors">
               Terms
             </a>
-            <a href="/" className="hover:text-gray-900 transition-colors">
+            <a href="/" className="hover:text-foreground transition-colors">
               GitHub
             </a>
-            <a href="/" className="hover:text-gray-900 transition-colors">
+            <a href="/" className="hover:text-foreground transition-colors">
               Contact
             </a>
+            <ModeToggle />
           </div>
-
-          <button type="button" className="p-2 text-gray-300 hover:text-gray-900 transition-colors">
-            <Settings className="w-4 h-4" />
-          </button>
         </div>
       </footer>
     </div>

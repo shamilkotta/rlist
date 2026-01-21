@@ -2,6 +2,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 
+import { ThemeProvider } from '@repo/ui';
 import { ConvexClientProvider } from '../components/ConvexClientProvider';
 
 import appCss from '../styles.css?url';
@@ -17,7 +18,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'ReadList - Curate your knowledge base',
       },
     ],
     links: [
@@ -33,12 +34,14 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body className="m-0 antialiased text-slate-900 bg-white">
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+      <body className="m-0 antialiased">
+        <ThemeProvider defaultTheme="system" storageKey="rlist-theme">
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </ThemeProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
