@@ -1,11 +1,66 @@
 import { Button, Input, ModeToggle } from '@repo/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpRight, Bell, ChevronDown, LayoutGrid, List, Search } from 'lucide-react';
+import { ArrowUpRight, Bell, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { ArticleCard } from '../components/ArticleCard';
+import { ArticleListItem } from '../components/ArticleListItem';
+import { Search } from '../components/Search';
 
 export const Route = createFileRoute('/')({ component: Home });
 
+type ViewMode = 'grid' | 'list';
+
 function Home() {
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [urlInput, setUrlInput] = useState('');
+  const [showUrlPreview, setShowUrlPreview] = useState(false);
+  const urlPreviewRef = useRef<HTMLDivElement>(null);
+
+  const isValidUrl = (string: string) => {
+    const trimmed = string.trim();
+    if (!trimmed) return false;
+
+    // Check for http:// or https:// URLs
+    if (/^https?:\/\/.+/.test(trimmed)) {
+      try {
+        new URL(trimmed);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    // Check for domain-like patterns (e.g., example.com, www.example.com)
+    const domainPattern = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/.*)?$/;
+    return domainPattern.test(trimmed);
+  };
+
+  const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUrlInput(value);
+    setShowUrlPreview(isValidUrl(value) && value.trim().length > 0);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // Handle URL preview popup
+      if (urlPreviewRef.current && !urlPreviewRef.current.contains(target)) {
+        if (!target.closest('input[type="text"]')) {
+          setShowUrlPreview(false);
+        }
+      }
+    };
+
+    if (showUrlPreview) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUrlPreview]);
   const articles = [
     {
       id: 1,
@@ -157,13 +212,8 @@ function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative hidden sm:block group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-foreground transition-colors" />
-              <Input
-                type="text"
-                placeholder="Search..."
-                className="pl-9 pr-4 py-1.5 w-[240px] bg-muted/50 border-transparent hover:border-border text-[13px] focus:bg-background focus:border-border placeholder:text-muted-foreground"
-              />
+            <div className="hidden sm:block">
+              <Search />
             </div>
 
             <Button variant="ghost" size="icon" className="rounded-full">
@@ -208,10 +258,20 @@ function Home() {
             </div>
 
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${viewMode === 'grid' ? 'text-foreground' : 'text-muted-foreground'}`}
+                onClick={() => setViewMode('grid')}
+              >
                 <LayoutGrid className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${viewMode === 'list' ? 'text-foreground' : 'text-muted-foreground'}`}
+                onClick={() => setViewMode('list')}
+              >
                 <List className="w-4 h-4" />
               </Button>
             </div>
@@ -232,43 +292,83 @@ function Home() {
                 Save and organize articles for later reading
               </p>
             </div>
-            <div className="relative flex items-center group shrink-0">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-muted-foreground/50"
-                >
-                  <title>Link icon</title>
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg>
+            <div className="relative flex flex-col shrink-0">
+              <div className="relative flex items-center group">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-muted-foreground/50"
+                  >
+                    <title>Link icon</title>
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                  </svg>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Paste a URL to save..."
+                  value={urlInput}
+                  onChange={handleUrlInputChange}
+                  className="pl-10 pr-28 py-2.5 h-auto bg-background border-border rounded-lg shadow-sm text-[15px] placeholder:text-muted-foreground focus:border-border focus:outline-none focus:ring-0 w-full max-w-[480px]"
+                />
+                <Button className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-md font-medium text-[12px]">
+                  Add URL
+                </Button>
               </div>
-              <Input
-                type="text"
-                placeholder="Paste a URL to save..."
-                className="pl-10 pr-24 py-2 h-auto bg-background border-border rounded-lg shadow-sm text-[14px] placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/10 w-full max-w-[400px]"
-              />
-              <Button className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-md font-medium text-[12px]">
-                Add URL
-              </Button>
+
+              {showUrlPreview && (
+                <div
+                  ref={urlPreviewRef}
+                  className="absolute top-full left-0 mt-2 w-full max-w-[480px] bg-card border border-border rounded-lg shadow-lg p-5 z-50"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-[4px] bg-muted flex items-center justify-center overflow-hidden border border-border shrink-0">
+                      <div className="w-7 h-7 bg-muted-foreground/20 rounded-sm" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-[16px] font-bold text-foreground mb-1.5 leading-snug tracking-tight line-clamp-2">
+                        Example Article Title from URL
+                      </h3>
+                      <p className="text-[14px] text-muted-foreground leading-relaxed line-clamp-2 font-normal">
+                        This is a sample description that would be fetched from the URL. It provides
+                        a brief overview of the article content and helps users understand what
+                        they're about to save.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-3 border-t border-border">
+                    <span className="text-[13px] text-muted-foreground font-mono truncate">
+                      {urlInput.trim()}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Grid */}
+        {/* Articles Grid/List View */}
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border">
-            {articles.map((article) => (
-              <ArticleCard key={article.id} {...article} />
-            ))}
-          </div>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border">
+              {articles.map((article) => (
+                <ArticleCard key={article.id} {...article} />
+              ))}
+            </div>
+          ) : (
+            <div className="border-l border-t border-dashed border-border">
+              {articles.map((article) => (
+                <ArticleListItem key={article.id} {...article} />
+              ))}
+            </div>
+          )}
         </div>
       </main>
 
