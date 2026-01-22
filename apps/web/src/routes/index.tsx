@@ -164,9 +164,7 @@ function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <Search />
-            </div>
+            <Search />
 
             <button
               type="button"

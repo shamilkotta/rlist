@@ -72,7 +72,7 @@ export function Search() {
   }, []);
 
   return (
-    <div className="relative w-[300px] h-9" ref={containerRef}>
+    <div className="relative w-9 sm:w-[200px] md:w-[300px] h-9" ref={containerRef}>
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -83,35 +83,46 @@ export function Search() {
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             type="button"
             onClick={() => setOpen(true)}
-            className="absolute inset-0 flex items-center w-full px-3 py-1.5 text-sm rounded-md bg-background border border-border transition-colors cursor-text text-muted-foreground hover:text-foreground z-10"
+            className="absolute inset-0 flex items-center justify-center sm:justify-start w-full px-2 sm:px-3 py-1.5 text-sm rounded-md bg-background border-0 sm:border sm:border-border transition-colors cursor-text text-muted-foreground hover:text-foreground z-10"
           >
-            <motion.div layoutId="search-icon">
-              <SearchIcon className="w-3.5 h-3.5 mr-2 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <motion.div
+              layoutId="search-icon"
+              transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
+            >
+              <SearchIcon className="w-4 h-4 sm:w-3.5 sm:h-3.5 sm:mr-2 text-muted-foreground group-hover:text-foreground transition-colors" />
             </motion.div>
-            <motion.span layoutId="search-text" className="text-[13px]">
+            <motion.span
+              layoutId="search-text"
+              transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
+              className="text-[13px] hidden sm:block flex-1 text-left"
+            >
               Find...
             </motion.span>
-            <motion.div layoutId="search-kbd" className="ml-auto">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                <span className="text-xs">⌘K</span>
-              </kbd>
-            </motion.div>
+            <motion.kbd
+              layoutId="search-kbd"
+              transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
+              className="pointer-events-none hidden md:inline-flex h-5 min-w-[34px] items-center justify-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+            >
+              ⌘K
+            </motion.kbd>
           </motion.button>
         )}
 
         {open && (
           <motion.div
             layoutId="search-container"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
-            style={{ width: 380 }}
-            className="absolute top-0 left-0 z-[100] bg-background border border-border rounded-xl overflow-hidden"
+            className="fixed sm:absolute top-4 sm:top-0 left-1/2 sm:left-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 z-[100] bg-background border border-border rounded-xl overflow-hidden w-[calc(100vw-32px)] sm:w-[380px] md:w-[450px] shadow-2xl"
           >
             <Command className="w-full bg-transparent" loop>
               <div className="flex items-center border-b border-border px-3 h-[52px]">
-                <motion.div layoutId="search-icon">
+                <motion.div
+                  layoutId="search-icon"
+                  transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
+                >
                   <SearchIcon className="w-5 h-5 text-muted-foreground mr-3 shrink-0" />
                 </motion.div>
                 <Command.Input
@@ -119,13 +130,15 @@ export function Search() {
                   placeholder="Find..."
                   value={query}
                   onValueChange={setQuery}
-                  className="flex h-full w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground text-foreground disabled:cursor-not-allowed disabled:opacity-50 border-none focus:ring-0"
+                  className="flex h-full flex-1 rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground text-foreground disabled:cursor-not-allowed disabled:opacity-50 border-none focus:ring-0"
                 />
-                <motion.div layoutId="search-kbd">
-                  <kbd className="ml-2 pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-muted px-2 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                    Esc
-                  </kbd>
-                </motion.div>
+                <motion.kbd
+                  layoutId="search-kbd"
+                  transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
+                  className="pointer-events-none inline-flex h-5 min-w-[34px] items-center justify-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+                >
+                  Esc
+                </motion.kbd>
               </div>
               <Command.List className="max-h-[360px] overflow-y-auto p-2 scroll-py-2">
                 <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
