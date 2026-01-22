@@ -1,31 +1,50 @@
-import { Moon, Sun } from 'lucide-react';
+import { Monitor, Moon, Sun } from 'lucide-react';
 
 import { Button } from './button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './dropdown-menu';
 import { useTheme } from './theme-provider';
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  const cycleTheme = () => {
+    if (theme === 'dark') {
+      setTheme('light');
+    } else if (theme === 'light') {
+      setTheme('system');
+    } else {
+      setTheme('dark');
+    }
+  };
+
+  const getIcon = () => {
+    if (theme === 'dark') {
+      return <Moon className="h-4 w-4" />;
+    }
+    if (theme === 'light') {
+      return <Sun className="h-4 w-4" />;
+    }
+    return <Monitor className="h-4 w-4" />;
+  };
+
+  const getLabel = () => {
+    if (theme === 'dark') {
+      return 'Switch to light mode';
+    }
+    if (theme === 'light') {
+      return 'Switch to system mode';
+    }
+    return 'Switch to dark mode';
+  };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={cycleTheme}
+      className="h-auto w-auto p-1 cursor-pointer hover:opacity-80 transition-opacity"
+      aria-label={getLabel()}
+    >
+      {getIcon()}
+    </Button>
   );
 }
