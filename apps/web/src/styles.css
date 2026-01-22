@@ -91,3 +91,19 @@
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+
+/* Scroll-driven animation for filter tabs */
+@keyframes slide-for-logo {
+  from {
+    margin-left: 0;
+  }
+  to {
+    margin-left: 56px;
+  }
+}
+
+.filter-tabs {
+  animation: slide-for-logo linear both;
+  animation-timeline: scroll();
+  animation-range: 0px 60px;
+}
