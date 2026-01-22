@@ -37,7 +37,14 @@ const searchItems = [
 
 export function Search() {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setQuery('');
+    }
+  }, [open]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -65,7 +72,7 @@ export function Search() {
   }, []);
 
   return (
-    <div className="relative w-[240px] h-9" ref={containerRef}>
+    <div className="relative w-[300px] h-9" ref={containerRef}>
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -100,7 +107,7 @@ export function Search() {
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             style={{ width: 380 }}
-            className="absolute top-0 left-0 z-[100] bg-background border border-border rounded-xl shadow-2xl overflow-hidden"
+            className="absolute top-0 left-0 z-[100] bg-background border border-border rounded-xl overflow-hidden"
           >
             <Command className="w-full bg-transparent" loop>
               <div className="flex items-center border-b border-border px-3 h-[52px]">
@@ -110,6 +117,8 @@ export function Search() {
                 <Command.Input
                   autoFocus
                   placeholder="Find..."
+                  value={query}
+                  onValueChange={setQuery}
                   className="flex h-full w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground text-foreground disabled:cursor-not-allowed disabled:opacity-50 border-none focus:ring-0"
                 />
                 <motion.div layoutId="search-kbd">

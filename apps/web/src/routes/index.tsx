@@ -1,9 +1,10 @@
-import { Button, Input, ModeToggle } from '@repo/ui';
+import { Button, ModeToggle } from '@repo/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpRight, Bell, ChevronDown, LayoutGrid, List } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { useState } from 'react';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleListItem } from '../components/ArticleListItem';
+import { PasteInput } from '../components/PasteInput';
 import { Search } from '../components/Search';
 
 export const Route = createFileRoute('/')({ component: Home });
@@ -12,55 +13,6 @@ type ViewMode = 'grid' | 'list';
 
 function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [urlInput, setUrlInput] = useState('');
-  const [showUrlPreview, setShowUrlPreview] = useState(false);
-  const urlPreviewRef = useRef<HTMLDivElement>(null);
-
-  const isValidUrl = (string: string) => {
-    const trimmed = string.trim();
-    if (!trimmed) return false;
-
-    // Check for http:// or https:// URLs
-    if (/^https?:\/\/.+/.test(trimmed)) {
-      try {
-        new URL(trimmed);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    // Check for domain-like patterns (e.g., example.com, www.example.com)
-    const domainPattern = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/.*)?$/;
-    return domainPattern.test(trimmed);
-  };
-
-  const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUrlInput(value);
-    setShowUrlPreview(isValidUrl(value) && value.trim().length > 0);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-
-      // Handle URL preview popup
-      if (urlPreviewRef.current && !urlPreviewRef.current.contains(target)) {
-        if (!target.closest('input[type="text"]')) {
-          setShowUrlPreview(false);
-        }
-      }
-    };
-
-    if (showUrlPreview) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showUrlPreview]);
   const articles = [
     {
       id: 1,
@@ -216,10 +168,6 @@ function Home() {
               <Search />
             </div>
 
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Bell className="w-4 h-4" />
-            </Button>
-
             <button
               type="button"
               className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
@@ -292,65 +240,7 @@ function Home() {
                 Save and organize articles for later reading
               </p>
             </div>
-            <div className="relative flex flex-col shrink-0">
-              <div className="relative flex items-center group">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-muted-foreground/50"
-                  >
-                    <title>Link icon</title>
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                  </svg>
-                </div>
-                <Input
-                  type="text"
-                  placeholder="Paste a URL to save..."
-                  value={urlInput}
-                  onChange={handleUrlInputChange}
-                  className="pl-10 pr-28 py-2.5 h-auto bg-background border-border rounded-lg shadow-sm text-[15px] placeholder:text-muted-foreground focus:border-border focus:outline-none focus:ring-0 w-full max-w-[480px]"
-                />
-                <Button className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-md font-medium text-[12px]">
-                  Add URL
-                </Button>
-              </div>
-
-              {showUrlPreview && (
-                <div
-                  ref={urlPreviewRef}
-                  className="absolute top-full left-0 mt-2 w-full max-w-[480px] bg-card border border-border rounded-lg shadow-lg p-5 z-50"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-[4px] bg-muted flex items-center justify-center overflow-hidden border border-border shrink-0">
-                      <div className="w-7 h-7 bg-muted-foreground/20 rounded-sm" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-[16px] font-bold text-foreground mb-1.5 leading-snug tracking-tight line-clamp-2">
-                        Example Article Title from URL
-                      </h3>
-                      <p className="text-[14px] text-muted-foreground leading-relaxed line-clamp-2 font-normal">
-                        This is a sample description that would be fetched from the URL. It provides
-                        a brief overview of the article content and helps users understand what
-                        they're about to save.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 pt-3 border-t border-border">
-                    <span className="text-[13px] text-muted-foreground font-mono truncate">
-                      {urlInput.trim()}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <PasteInput />
           </div>
         </section>
 
