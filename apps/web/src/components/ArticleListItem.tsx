@@ -19,7 +19,7 @@ export function ArticleListItem({
   faviconUrl,
 }: ArticleListItemProps) {
   return (
-    <div className="relative group bg-card py-3 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border">
+    <div className="relative group bg-card py-5 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border">
       {/* Corner crosses */}
       {/* Left-top corner */}
       <div className="absolute -left-2 -top-2 w-4 h-4">

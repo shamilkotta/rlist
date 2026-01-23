@@ -98,12 +98,21 @@ code {
     margin-left: 0;
   }
   to {
-    margin-left: 56px;
+    margin-left: 40px;
   }
 }
 
 .filter-tabs {
   animation: slide-for-logo linear both;
-  animation-timeline: scroll();
+  animation-timeline: scroll(root);
   animation-range: 0px 60px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

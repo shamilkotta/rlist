@@ -142,7 +142,7 @@ export function PasteInput() {
   }, [open]);
 
   return (
-    <div className="relative h-[50px]" ref={containerRef}>
+    <div className="relative h-auto sm:h-[50px] w-full md:w-auto" ref={containerRef}>
       <AnimatePresence mode="wait">
         {!open && (
           <motion.button
@@ -152,7 +152,7 @@ export function PasteInput() {
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             onClick={() => setOpen(true)}
-            className="relative flex items-center w-[320px] px-3 py-2.5 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors z-10"
+            className="relative flex items-center w-full md:w-[320px] px-3 py-2.5 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors z-10"
           >
             <div className="flex items-center pointer-events-none mr-3">
               <svg
@@ -182,8 +182,7 @@ export function PasteInput() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
-            style={{ width: 480 }}
-            className="relative z-50"
+            className="relative z-50 w-full md:w-[480px]"
           >
             <div className="relative flex items-center group bg-background border border-border rounded-lg">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
