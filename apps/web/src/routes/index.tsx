@@ -1,6 +1,6 @@
 import { Button, ModeToggle } from '@repo/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpRight, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, LayoutGrid, List, TextAlignEnd } from 'lucide-react';
 import { useState } from 'react';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleListItem } from '../components/ArticleListItem';
@@ -131,8 +131,8 @@ function Home() {
       {/* Fixed Logo - stays in place while scrolling */}
       <a
         href="/"
-        className="fixed left-6 top-[17px] z-60 flex items-center group"
-        style={{ left: 'max(24px, calc((100vw - 1400px) / 2 + 24px))' }}
+        className="fixed left-4 sm:left-6 top-[17px] z-60 flex items-center group"
+        style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
       >
         <div className="w-6 h-6 bg-primary rounded-[6px] flex items-center justify-center group-hover:bg-primary/90 transition-colors">
           <ArrowUpRight className="w-3.5 h-3.5 text-primary-foreground" />
@@ -141,10 +141,10 @@ function Home() {
 
       {/* Header - scrolls away */}
       <header className="z-40 w-full bg-background">
-        <div className="max-w-[1400px] mx-auto px-6 h-[60px] flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-8">
             {/* Spacer for fixed logo */}
-            <div className="w-6" />
+            <div className="w-3" />
 
             <nav className="hidden md:flex items-center gap-6">
               {['Dashboard', 'Discover', 'Analytics'].map((item) => (
@@ -168,25 +168,29 @@ function Home() {
 
             <button
               type="button"
-              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
+              className="hidden md:flex w-8 h-8 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
             >
               <div className="w-full h-full rounded-full bg-gradient-to-tr from-primary/70 to-primary/90" />
             </button>
+
+            <Button variant="ghost" size="icon" className="flex md:hidden h-8 w-8">
+              <TextAlignEnd className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Filter Bar - sticky */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between gap-4 overflow-x-auto no-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6">
             {/* Tabs with scroll-driven animation for margin */}
-            <div className="flex items-center gap-8 filter-tabs">
+            <div className="flex items-center gap-4 sm:gap-8 filter-tabs">
               {['All Items', 'Unread', 'Archive'].map((tab, i) => (
                 <button
                   key={tab}
                   type="button"
-                  className={`py-4 text-[14px] font-medium transition-colors border-b-2 ${
+                  className={`py-4 text-nowrap text-[13px] sm:text-[14px] font-medium transition-colors border-b-2 ${
                     i === 0
                       ? 'text-foreground border-foreground'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
@@ -197,28 +201,24 @@ function Home() {
               ))}
               <button
                 type="button"
-                className="py-4 flex items-center gap-1.5 text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
+                className="py-4 flex items-center gap-1.5 text-[13px] sm:text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent whitespace-nowrap"
               >
                 Tags <ChevronDown className="w-3.5 h-3.5 opacity-50" />
               </button>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-8 w-8 ${viewMode === 'grid' ? 'text-foreground' : 'text-muted-foreground'}`}
-                onClick={() => setViewMode('grid')}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
               >
-                <LayoutGrid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-8 w-8 ${viewMode === 'list' ? 'text-foreground' : 'text-muted-foreground'}`}
-                onClick={() => setViewMode('list')}
-              >
-                <List className="w-4 h-4" />
+                {viewMode === 'grid' ? (
+                  <List className="w-4 h-4" />
+                ) : (
+                  <LayoutGrid className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -228,41 +228,42 @@ function Home() {
       {/* Main Content */}
       <main className="pb-20">
         {/* Add URL Section */}
-        <section className="max-w-[1400px] mx-auto px-6 py-8">
-          <div className="flex items-center justify-between gap-6">
+        <section className="max-w-[1400px] mx-auto px-3 sm:px-6 py-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <h2 className="text-[32px] font-bold tracking-tight text-foreground mb-2">
+              <h2 className="text-[28px] md:text-[32px] font-bold tracking-tight text-foreground mb-2">
                 Your Articles
               </h2>
-              <p className="text-[14px] text-muted-foreground">
+              {/* <p className="text-[14px] text-muted-foreground">
                 Save and organize articles for later reading
-              </p>
+              </p> */}
             </div>
             <PasteInput />
           </div>
         </section>
 
         {/* Articles Grid/List View */}
-        <div className="max-w-[1400px] mx-auto px-6">
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border">
-              {articles.map((article) => (
-                <ArticleCard key={article.id} {...article} />
-              ))}
-            </div>
-          ) : (
-            <div className="border-l border-t border-dashed border-border">
-              {articles.map((article) => (
-                <ArticleListItem key={article.id} {...article} />
-              ))}
-            </div>
-          )}
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
+          <div
+            className={`${viewMode === 'grid' ? 'md:grid hidden' : 'hidden'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border`}
+          >
+            {articles.map((article) => (
+              <ArticleCard key={article.id} {...article} />
+            ))}
+          </div>
+          <div
+            className={`${viewMode === 'list' ? 'block' : 'md:hidden block'} border-l border-t border-dashed border-border`}
+          >
+            {articles.map((article) => (
+              <ArticleListItem key={article.id} {...article} />
+            ))}
+          </div>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-border bg-background py-4">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-muted-foreground text-[13px] font-medium">
             <div className="w-5 h-5 bg-muted rounded flex items-center justify-center">
               <ArrowUpRight className="w-2.5 h-2.5 text-muted-foreground" />
