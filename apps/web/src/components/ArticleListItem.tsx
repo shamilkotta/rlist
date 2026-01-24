@@ -19,7 +19,7 @@ export function ArticleListItem({
   faviconUrl,
 }: ArticleListItemProps) {
   return (
-    <div className="relative group bg-card py-5 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border">
+    <div className="relative group py-5 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border">
       {/* Corner crosses */}
       {/* Left-top corner */}
       <div className="absolute -left-2 -top-2 w-4 h-4">
@@ -62,7 +62,7 @@ export function ArticleListItem({
               <Badge
                 key={tag}
                 variant="secondary"
-                className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider"
+                className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-sm bg-muted"
               >
                 {tag}
               </Badge>

@@ -153,7 +153,7 @@ export function PasteInput() {
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             onClick={() => setOpen(true)}
-            className="relative flex items-center w-full md:w-[320px] px-3 py-2.5 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors z-10"
+            className="relative flex items-center cursor-text w-full md:w-[320px] px-3 py-2.5 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors z-10 focus:outline-none"
           >
             <div className="flex items-center pointer-events-none mr-3">
               <svg
@@ -209,7 +209,7 @@ export function PasteInput() {
                 placeholder="Paste a URL to save..."
                 value={urlInput}
                 onChange={handleUrlInputChange}
-                className="pl-10 pr-28 py-2.5 h-auto bg-transparent border-none rounded-lg text-[15px] placeholder:text-muted-foreground focus:ring-0 w-full"
+                className="pl-10 pr-28 py-2.5 dark:bg-background h-auto border-none rounded-lg text-[15px] placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 w-full shadow-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSubmit();
@@ -218,7 +218,7 @@ export function PasteInput() {
               />
               <Button
                 tabIndex={-1}
-                className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-md font-medium text-[12px]"
+                className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-md font-medium text-[12px] focus-visible:ring-0 focus-visible:ring-offset-0"
                 onClick={handleSubmit}
               >
                 Add URL
@@ -228,7 +228,7 @@ export function PasteInput() {
             {showUrlPreview && (
               <div
                 ref={urlPreviewRef}
-                className="absolute top-full left-0 mt-2 w-full bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
+                className="absolute top-full left-0 mt-2 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50"
               >
                 <div className="p-5">
                   {/* Domain & Favicon Header */}
@@ -255,7 +255,7 @@ export function PasteInput() {
                 </div>
 
                 {/* Tag Input Footer */}
-                <div className="px-5 py-3 bg-muted/30 border-t border-border flex items-center gap-2 flex-wrap min-h-[50px]">
+                <div className="px-5 py-3 bg-background border-t border-border flex items-center gap-2 flex-wrap min-h-[50px]">
                   {tags.map((tag) => (
                     <div
                       key={tag}
@@ -278,7 +278,7 @@ export function PasteInput() {
                       onChange={handleTagInputChange}
                       onKeyDown={handleTagKeyDown}
                       placeholder={tags.length === 0 ? 'Add tags (e.g. Design)...' : 'Add tag...'}
-                      className="flex-1 bg-transparent border-none outline-none text-[13px] placeholder:text-muted-foreground/70 h-6 min-w-[120px]"
+                      className="flex-1 border-none outline-none text-[13px] placeholder:text-muted-foreground/70 h-6 min-w-[120px]"
                     />
                   )}
                 </div>

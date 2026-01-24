@@ -19,7 +19,7 @@ export function ArticleCard({
   faviconUrl,
 }: ArticleCardProps) {
   return (
-    <div className="relative group bg-card h-full p-8 cursor-pointer flex flex-col border-r border-b border-dashed border-border">
+    <div className="relative group h-full p-8 cursor-pointer flex flex-col border-r border-b border-dashed border-border">
       {/* Corner crosses */}
       {/* Top-left corner */}
       <div className="absolute -top-2 -left-2 w-4 h-4">
