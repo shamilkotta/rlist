@@ -1,4 +1,5 @@
-import { Button, Input } from '@repo/ui';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
