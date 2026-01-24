@@ -1,5 +1,7 @@
+import { AppSidebar } from '@/components/AppSidebar';
 import { ConvexClientProvider } from '@/components/ConvexClientProvider';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
@@ -38,7 +40,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="m-0 antialiased">
         <ThemeProvider defaultTheme="system" storageKey="rlist-theme">
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            <SidebarProvider defaultOpen={false}>
+              <AppSidebar />
+              <SidebarInset>{children}</SidebarInset>
+            </SidebarProvider>
+          </ConvexClientProvider>
         </ThemeProvider>
         <TanStackDevtools
           config={{

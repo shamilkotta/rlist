@@ -1,5 +1,6 @@
 import { ModeToggle } from '@/components/mode-toggle';
 import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
 import { ArrowUpRight, ChevronDown, LayoutGrid, List, TextAlignEnd } from 'lucide-react';
 import { useState } from 'react';
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/')({ component: Home });
 type ViewMode = 'grid' | 'list';
 
 function Home() {
+  const { toggleSidebar } = useSidebar();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const articles = [
     {
@@ -174,7 +176,12 @@ function Home() {
               <div className="w-full h-full rounded-full bg-gradient-to-tr from-primary/70 to-primary/90" />
             </button>
 
-            <Button variant="ghost" size="icon" className="flex md:hidden h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex md:hidden h-8 w-8"
+              onClick={toggleSidebar}
+            >
               <TextAlignEnd className="w-5 h-5" />
             </Button>
           </div>
@@ -246,14 +253,14 @@ function Home() {
         {/* Articles Grid/List View */}
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
           <div
-            className={`${viewMode === 'grid' ? 'md:grid hidden' : 'hidden'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border`}
+            className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border`}
           >
             {articles.map((article) => (
               <ArticleCard key={article.id} {...article} />
             ))}
           </div>
           <div
-            className={`${viewMode === 'list' ? 'block' : 'md:hidden block'} border-l border-t border-dashed border-border`}
+            className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
           >
             {articles.map((article) => (
               <ArticleListItem key={article.id} {...article} />
