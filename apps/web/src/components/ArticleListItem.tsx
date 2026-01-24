@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface ArticleListItemProps {
   title: string;
@@ -62,7 +63,7 @@ export function ArticleListItem({
               <Badge
                 key={tag}
                 variant="secondary"
-                className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-sm bg-muted"
+                className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-sm badge hover:bg-primary hover:text-primary-foreground"
               >
                 {tag}
               </Badge>
@@ -74,11 +75,21 @@ export function ArticleListItem({
         </div>
       </div>
 
-      <h3 className="text-[15px] font-bold text-foreground leading-snug group-hover:text-primary transition-colors tracking-tight line-clamp-1 ">
+      <h3
+        className={cn(
+          'text-[15px] font-bold text-foreground leading-snug tracking-tight line-clamp-1 ',
+          'group-has-[.badge:hover]:text-foreground group-hover:text-primary transition-colors'
+        )}
+      >
         {title}
       </h3>
 
-      <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-1 font-normal group-hover:text-foreground transition-colors ">
+      <p
+        className={cn(
+          'text-[13px] text-muted-foreground leading-relaxed line-clamp-1 font-normal ',
+          'group-has-[.badge:hover]:text-muted-foreground group-hover:text-foreground transition-colors'
+        )}
+      >
         {description}
       </p>
     </div>

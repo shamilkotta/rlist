@@ -153,7 +153,7 @@ export function PasteInput() {
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             onClick={() => setOpen(true)}
-            className="relative flex items-center cursor-text w-full md:w-[320px] px-3 py-2.5 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors z-10 focus:outline-none"
+            className="relative flex items-center h-11 cursor-text w-full md:w-[320px] px-3 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground transition-colors z-10 focus:outline-none"
           >
             <div className="flex items-center pointer-events-none mr-3">
               <svg
@@ -185,7 +185,7 @@ export function PasteInput() {
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             className="relative z-50 w-full md:w-[480px]"
           >
-            <div className="relative flex items-center group bg-background border border-border rounded-lg">
+            <div className="relative flex items-center h-11 group bg-background border border-border rounded-md">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <svg
                   width="16"
@@ -209,7 +209,7 @@ export function PasteInput() {
                 placeholder="Paste a URL to save..."
                 value={urlInput}
                 onChange={handleUrlInputChange}
-                className="pl-10 pr-28 py-2.5 dark:bg-background h-auto border-none rounded-lg text-[15px] placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 w-full shadow-none"
+                className="pl-10 pr-28 h-full dark:bg-background border-none rounded-md text-[15px] placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 w-full shadow-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSubmit();
@@ -218,7 +218,7 @@ export function PasteInput() {
               />
               <Button
                 tabIndex={-1}
-                className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-md font-medium text-[12px] focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-[calc(var(--radius)-5px)] font-medium text-[12px] focus-visible:ring-0 focus-visible:ring-offset-0"
                 onClick={handleSubmit}
               >
                 Add URL
