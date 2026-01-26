@@ -1,13 +1,16 @@
+import { TanStackDevtools } from '@tanstack/react-devtools';
+import type { QueryClient } from '@tanstack/react-query';
+import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+
 import { AppSidebar } from '@/components/AppSidebar';
-import { ConvexClientProvider } from '@/components/ConvexClientProvider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { TanStackDevtools } from '@tanstack/react-devtools';
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import appCss from '../styles.css?url';
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   head: () => ({
     meta: [
       {
@@ -40,12 +43,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="m-0 antialiased">
         <ThemeProvider defaultTheme="system" storageKey="rlist-theme">
-          <ConvexClientProvider>
-            <SidebarProvider defaultOpen={false}>
-              <AppSidebar />
-              <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
-          </ConvexClientProvider>
+          <SidebarProvider defaultOpen={false}>
+            <AppSidebar />
+            <SidebarInset>{children}</SidebarInset>
+          </SidebarProvider>
         </ThemeProvider>
         <TanStackDevtools
           config={{

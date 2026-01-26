@@ -17,7 +17,7 @@ build/
 .env.*.local
 
 # Convex
-convex/_generated/
+**/convex/_generated/
 
 # IDE
 .idea/
