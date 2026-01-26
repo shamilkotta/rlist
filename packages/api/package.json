@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@convex-dev/better-auth": "^0.10.10",
+    "better-auth": "^1.4.17",
     "convex": "^1.17.4"
   },
   "devDependencies": {
