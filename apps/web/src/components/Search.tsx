@@ -115,7 +115,7 @@ export function Search() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
-            className="fixed sm:absolute top-4 sm:top-0 left-1/2 sm:left-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 z-[100] bg-background border border-border rounded-xl overflow-hidden w-[calc(100vw-32px)] sm:w-[380px] md:w-[450px] shadow-2xl"
+            className="fixed sm:absolute top-4 sm:top-0 left-1/2 sm:left-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 z-100 bg-background border border-border rounded-xl overflow-hidden w-[calc(100vw-32px)] sm:w-[380px] md:w-[450px] shadow-2xl"
           >
             <Command className="w-full bg-transparent" loop>
               <div className="flex items-center border-b border-border px-3 h-[52px]">

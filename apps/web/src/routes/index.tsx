@@ -1,8 +1,30 @@
 import { ModeToggle } from '@/components/mode-toggle';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
-import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpRight, ChevronDown, LayoutGrid, List, TextAlignEnd } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
+import { Link, createFileRoute } from '@tanstack/react-router';
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  Bell,
+  ChevronDown,
+  CreditCard,
+  LayoutGrid,
+  List,
+  LogOut,
+  Sparkles,
+  TextAlignEnd,
+} from 'lucide-react';
 import { useState } from 'react';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleListItem } from '../components/ArticleListItem';
@@ -129,6 +151,8 @@ function Home() {
     },
   ];
 
+  const { data: session, isPending } = authClient.useSession();
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-muted">
       {/* Fixed Logo - stays in place while scrolling */}
@@ -169,12 +193,96 @@ function Home() {
           <div className="flex items-center gap-3">
             <Search />
 
-            <button
-              type="button"
-              className="hidden md:flex w-8 h-8 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity"
-            >
-              <div className="w-full h-full rounded-full bg-gradient-to-tr from-primary/70 to-primary/90" />
-            </button>
+            {!isPending &&
+              (session ? (
+                <div className="flex items-center gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="hidden md:flex w-8 h-8 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity overflow-hidden ring-1 ring-border cursor-pointer"
+                      >
+                        <Avatar className="h-8 w-8 rounded-full">
+                          <AvatarImage
+                            src={session.user.image ?? ''}
+                            alt={session.user.name ?? ''}
+                          />
+                          <AvatarFallback className="rounded-full">
+                            {session.user.name?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 rounded-lg" align="end" sideOffset={8}>
+                      <DropdownMenuLabel className="p-0 font-normal">
+                        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                          <Avatar className="h-8 w-8 rounded-lg">
+                            <AvatarImage
+                              src={session.user.image ?? ''}
+                              alt={session.user.name ?? ''}
+                            />
+                            <AvatarFallback className="rounded-lg">
+                              {session.user.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="grid flex-1 text-left text-sm leading-tight">
+                            <span className="truncate font-semibold">{session.user.name}</span>
+                            <span className="truncate text-xs text-muted-foreground">
+                              {session.user.email}
+                            </span>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                          <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                          Upgrade to Pro
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                          <BadgeCheck className="mr-2 h-4 w-4" />
+                          Account
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Billing
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Bell className="mr-2 h-4 w-4" />
+                          Notifications
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() =>
+                          authClient.signOut({
+                            fetchOptions: {
+                              onSuccess: () => {
+                                location.reload();
+                              },
+                            },
+                          })
+                        }
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" asChild className="hidden md:flex">
+                    <Link to="/login">Sign in</Link>
+                  </Button>
+                  <Button size="sm" asChild className="hidden md:flex">
+                    <Link to="/signup">Get Started</Link>
+                  </Button>
+                </div>
+              ))}
 
             <Button
               variant="ghost"
