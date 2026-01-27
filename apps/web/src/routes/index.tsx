@@ -1,3 +1,4 @@
+import { LandingPage } from '@/components/LandingPage';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,8 @@ type ViewMode = 'grid' | 'list';
 function Home() {
   const { toggleSidebar } = useSidebar();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const { data: session, isPending } = authClient.useSession();
+
   const articles = [
     {
       id: 1,
@@ -151,7 +154,9 @@ function Home() {
     },
   ];
 
-  const { data: session, isPending } = authClient.useSession();
+  if (!isPending && !session) {
+    return <LandingPage />;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-muted">
@@ -179,7 +184,7 @@ function Home() {
                   key={item}
                   href="/"
                   className={`text-[14px] font-medium transition-colors whitespace-nowrap ${
-                    item === 'Discover'
+                    item === 'Dashboard'
                       ? 'text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
