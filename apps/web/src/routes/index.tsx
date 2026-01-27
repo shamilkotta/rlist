@@ -13,9 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { authClient } from '@/lib/auth-client';
-import { getToken } from '@/lib/auth-server';
 import { Link, createFileRoute, useRouteContext } from '@tanstack/react-router';
-import { createServerFn } from '@tanstack/react-start';
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -147,21 +145,7 @@ const articles = [
   },
 ];
 
-const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
-  return await getToken();
-});
-
 export const Route = createFileRoute('/')({
-  beforeLoad: async (ctx) => {
-    const token = await getAuth();
-    if (token) {
-      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
-    }
-    return {
-      isAuthenticated: !!token,
-      token,
-    };
-  },
   component: Home,
 });
 
