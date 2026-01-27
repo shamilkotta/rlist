@@ -13,7 +13,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { authClient } from '@/lib/auth-client';
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { getToken } from '@/lib/auth-server';
+import { Link, createFileRoute, useRouteContext } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -32,129 +34,146 @@ import { ArticleListItem } from '../components/ArticleListItem';
 import { PasteInput } from '../components/PasteInput';
 import { Search } from '../components/Search';
 
-export const Route = createFileRoute('/')({ component: Home });
+const articles = [
+  {
+    id: 1,
+    title: 'React Server Components: A Comprehensive Guide',
+    description:
+      'Understanding the mental model of Server Components and how they fundamentally change data fetching in modern React applications.',
+    domain: 'react.dev',
+    date: '2h ago',
+    tags: ['FRONTEND'],
+    faviconUrl: 'https://react.dev/favicon.ico',
+  },
+  {
+    id: 2,
+    title: 'Designing reliable systems for scale',
+    description:
+      'How Stripe engineered their API to handle Black Friday traffic with 99.999% uptime through intelligent load balancing.',
+    domain: 'stripe.com',
+    date: 'Dec 14',
+    tags: ['SYSTEM DESIGN'],
+    faviconUrl: 'https://stripe.com/favicon.ico',
+  },
+  {
+    id: 3,
+    title: 'The craft of interaction design',
+    description:
+      "Why micro-interactions matter more than you think. A deep dive into the philosophy behind Linear's smooth user experience.",
+    domain: 'linear.app',
+    date: 'Dec 12',
+    tags: ['UX/UI'],
+    faviconUrl: 'https://linear.app/favicon.ico',
+  },
+  {
+    id: 4,
+    title: 'Zero-config backends on AI Cloud',
+    description:
+      'Building agents should feel like shaping an idea rather than fighting a maze of code or infrastructure.',
+    domain: 'vercel.com',
+    date: 'Dec 10',
+    tags: ['ENGINEERING', 'AI'],
+    faviconUrl: 'https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico',
+  },
+  {
+    id: 5,
+    title: 'Optimizing large language models',
+    description:
+      'Techniques for reducing latency and token costs when deploying LLMs in production environments.',
+    domain: 'openai.com',
+    date: 'Dec 08',
+    tags: ['AI', 'ML'],
+    faviconUrl: 'https://openai.com/favicon.ico',
+  },
+  {
+    id: 6,
+    title: 'Rust 1.75.0 Release Notes',
+    description:
+      'Async functions in traits, new stabilization features, and performance improvements for the compiler.',
+    domain: 'rust-lang.org',
+    date: 'Dec 05',
+    tags: ['BACKEND'],
+    faviconUrl: 'https://www.rust-lang.org/static/images/favicon.svg',
+  },
+  {
+    id: 7,
+    title: 'Advanced Prototyping with Variables',
+    description:
+      'How to use Figma variables to create realistic prototypes with logic, expressions, and dynamic state management.',
+    domain: 'figma.com',
+    date: 'Dec 03',
+    tags: ['DESIGN'],
+    faviconUrl: 'https://static.figma.com/app/icon/1/favicon.png',
+  },
+  {
+    id: 8,
+    title: 'Tailwind CSS v4.0: The Future of styling',
+    description:
+      'A sneak peek into the new engine, zero-runtime overhead, and simplified configuration coming in the next major version.',
+    domain: 'tailwindcss.com',
+    date: 'Dec 01',
+    tags: ['CSS', 'FRONTEND'],
+    faviconUrl: 'https://tailwindcss.com/favicon.ico',
+  },
+  {
+    id: 9,
+    title: 'Supabase is now General Availability',
+    description:
+      'The open source Firebase alternative declares GA. What this means for enterprise adoption and future roadmap.',
+    domain: 'supabase.com',
+    date: 'Nov 28',
+    tags: ['DATABASE', 'BACKEND'],
+    faviconUrl: 'https://supabase.com/favicon.ico',
+  },
+  {
+    id: 10,
+    title: 'Drizzle ORM: SQL-like elegance',
+    description:
+      'Why developers are switching to Drizzle for its widespread type safety, lightweight footprint, and zero dependencies.',
+    domain: 'orm.drizzle.team',
+    date: 'Nov 25',
+    tags: ['DATABASE'],
+    faviconUrl: 'https://orm.drizzle.team/favicon.ico',
+  },
+  {
+    id: 11,
+    title: 'View Transitions in Astro 3.0',
+    description:
+      'Seamless page navigation without a full page reload. Native browser APIs making SPAs obsolete?',
+    domain: 'astro.build',
+    date: 'Nov 22',
+    tags: ['FRONTEND'],
+    faviconUrl: 'https://astro.build/favicon.ico',
+  },
+];
+
+const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
+  return await getToken();
+});
+
+export const Route = createFileRoute('/')({
+  beforeLoad: async (ctx) => {
+    const token = await getAuth();
+    if (token) {
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
+    }
+    return {
+      isAuthenticated: !!token,
+      token,
+    };
+  },
+  component: Home,
+});
 
 type ViewMode = 'grid' | 'list';
 
 function Home() {
   const { toggleSidebar } = useSidebar();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const { isAuthenticated } = useRouteContext({ from: Route.id });
   const { data: session, isPending } = authClient.useSession();
 
-  const articles = [
-    {
-      id: 1,
-      title: 'React Server Components: A Comprehensive Guide',
-      description:
-        'Understanding the mental model of Server Components and how they fundamentally change data fetching in modern React applications.',
-      domain: 'react.dev',
-      date: '2h ago',
-      tags: ['FRONTEND'],
-      faviconUrl: 'https://react.dev/favicon.ico',
-    },
-    {
-      id: 2,
-      title: 'Designing reliable systems for scale',
-      description:
-        'How Stripe engineered their API to handle Black Friday traffic with 99.999% uptime through intelligent load balancing.',
-      domain: 'stripe.com',
-      date: 'Dec 14',
-      tags: ['SYSTEM DESIGN'],
-      faviconUrl: 'https://stripe.com/favicon.ico',
-    },
-    {
-      id: 3,
-      title: 'The craft of interaction design',
-      description:
-        "Why micro-interactions matter more than you think. A deep dive into the philosophy behind Linear's smooth user experience.",
-      domain: 'linear.app',
-      date: 'Dec 12',
-      tags: ['UX/UI'],
-      faviconUrl: 'https://linear.app/favicon.ico',
-    },
-    {
-      id: 4,
-      title: 'Zero-config backends on AI Cloud',
-      description:
-        'Building agents should feel like shaping an idea rather than fighting a maze of code or infrastructure.',
-      domain: 'vercel.com',
-      date: 'Dec 10',
-      tags: ['ENGINEERING', 'AI'],
-      faviconUrl: 'https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico',
-    },
-    {
-      id: 5,
-      title: 'Optimizing large language models',
-      description:
-        'Techniques for reducing latency and token costs when deploying LLMs in production environments.',
-      domain: 'openai.com',
-      date: 'Dec 08',
-      tags: ['AI', 'ML'],
-      faviconUrl: 'https://openai.com/favicon.ico',
-    },
-    {
-      id: 6,
-      title: 'Rust 1.75.0 Release Notes',
-      description:
-        'Async functions in traits, new stabilization features, and performance improvements for the compiler.',
-      domain: 'rust-lang.org',
-      date: 'Dec 05',
-      tags: ['BACKEND'],
-      faviconUrl: 'https://www.rust-lang.org/static/images/favicon.svg',
-    },
-    {
-      id: 7,
-      title: 'Advanced Prototyping with Variables',
-      description:
-        'How to use Figma variables to create realistic prototypes with logic, expressions, and dynamic state management.',
-      domain: 'figma.com',
-      date: 'Dec 03',
-      tags: ['DESIGN'],
-      faviconUrl: 'https://static.figma.com/app/icon/1/favicon.png',
-    },
-    {
-      id: 8,
-      title: 'Tailwind CSS v4.0: The Future of styling',
-      description:
-        'A sneak peek into the new engine, zero-runtime overhead, and simplified configuration coming in the next major version.',
-      domain: 'tailwindcss.com',
-      date: 'Dec 01',
-      tags: ['CSS', 'FRONTEND'],
-      faviconUrl: 'https://tailwindcss.com/favicon.ico',
-    },
-    {
-      id: 9,
-      title: 'Supabase is now General Availability',
-      description:
-        'The open source Firebase alternative declares GA. What this means for enterprise adoption and future roadmap.',
-      domain: 'supabase.com',
-      date: 'Nov 28',
-      tags: ['DATABASE', 'BACKEND'],
-      faviconUrl: 'https://supabase.com/favicon.ico',
-    },
-    {
-      id: 10,
-      title: 'Drizzle ORM: SQL-like elegance',
-      description:
-        'Why developers are switching to Drizzle for its widespread type safety, lightweight footprint, and zero dependencies.',
-      domain: 'orm.drizzle.team',
-      date: 'Nov 25',
-      tags: ['DATABASE'],
-      faviconUrl: 'https://orm.drizzle.team/favicon.ico',
-    },
-    {
-      id: 11,
-      title: 'View Transitions in Astro 3.0',
-      description:
-        'Seamless page navigation without a full page reload. Native browser APIs making SPAs obsolete?',
-      domain: 'astro.build',
-      date: 'Nov 22',
-      tags: ['FRONTEND'],
-      faviconUrl: 'https://astro.build/favicon.ico',
-    },
-  ];
-
-  if (!isPending && !session) {
+  if (!isAuthenticated) {
     return <LandingPage />;
   }
 
