@@ -31,7 +31,7 @@ export function LandingPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center relative px-4 overflow-hidden pt-[60px]">
         {/* Background Grid Pattern */}
-        <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] opacity-[0.2]" />
+        <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-size-[6rem_4rem] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] opacity-[0.2]" />
 
         {/* Hero Section Only */}
         <div className="max-w-[1400px] mx-auto text-center relative z-10 py-20 md:py-32">
@@ -65,6 +65,26 @@ export function LandingPage() {
             >
               <Link to="/login">Sign in to your account</Link>
             </Button>
+          </div>
+
+          {/* Mockup Container */}
+          <div className="mt-16 md:mt-20 relative max-w-[1000px] mx-auto animate-in fade-in slide-in-from-bottom-20 duration-1000 delay-500">
+            <div className="relative rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10 bg-background/50 backdrop-blur-sm p-1 md:p-2">
+              <img
+                src="/mockup-light.png"
+                alt="ReadList Mockup Light"
+                className="w-full h-auto rounded-lg border border-border/40 dark:hidden"
+              />
+              <img
+                src="/mockup-dark.png"
+                alt="ReadList Mockup Dark"
+                className="w-full h-auto rounded-lg border border-border/40 hidden dark:block"
+              />
+            </div>
+
+            {/* Decorative accents for mockup */}
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 blur-2xl rounded-full -z-10" />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-primary/5 blur-3xl rounded-full -z-10" />
           </div>
         </div>
 
