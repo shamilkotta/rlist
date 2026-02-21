@@ -1,5 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { convexAction } from '@convex-dev/react-query';
+import { api } from '@rlist/api/convex/_generated/api';
+import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -7,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export function PasteInput() {
   const [open, setOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [debouncedUrl, setDebouncedUrl] = useState('');
   const [showUrlPreview, setShowUrlPreview] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -41,6 +45,13 @@ export function PasteInput() {
     }
   };
 
+  const shouldFetch = showUrlPreview && isValidUrl(debouncedUrl);
+
+  const { data: metadata, isLoading: isLoadingMetadata } = useQuery({
+    ...convexAction(api.urls.fetchMetadata, shouldFetch ? { url: debouncedUrl } : 'skip'),
+    retry: false,
+  });
+
   const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setUrlInput(value);
@@ -72,30 +83,30 @@ export function PasteInput() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const resetState = useCallback(() => {
+    setOpen(false);
+    setUrlInput('');
+    setDebouncedUrl('');
+    setShowUrlPreview(false);
+    setTags([]);
+    setTagInput('');
+  }, []);
+
   const handleSubmit = () => {
     if (isValidUrl(urlInput)) {
       alert(`Submitting URL: ${urlInput}\nTags: ${tags.join(', ')}`);
-      // Reset state
-      setOpen(false);
-      setUrlInput('');
-      setShowUrlPreview(false);
-      setTags([]);
-      setTagInput('');
+      resetState();
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close component if clicking outside
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
-        // Also hide preview
-        setShowUrlPreview(false);
+        resetState();
       }
     };
 
     const handlePaste = (e: ClipboardEvent) => {
-      // Ignore if pasting into an input field (except when component is open and focused, handled naturally? No, global listener usually requires check)
       const target = e.target as HTMLElement;
       if (
         (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) &&
@@ -106,21 +117,20 @@ export function PasteInput() {
 
       const text = e.clipboardData?.getData('text');
       if (text) {
-        // Optionally, check isValidUrl(text) to be strict? User just said "pasting url".
         e.preventDefault();
         setUrlInput(text);
         setOpen(true);
-        setShowUrlPreview(isValidUrl(text));
+        const valid = isValidUrl(text);
+        setShowUrlPreview(valid);
+        if (valid) {
+          setDebouncedUrl(text);
+        }
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setOpen(false);
-        setUrlInput('');
-        setShowUrlPreview(false);
-        setTags([]);
-        setTagInput('');
+        resetState();
       }
     };
 
@@ -132,15 +142,18 @@ export function PasteInput() {
       document.removeEventListener('paste', handlePaste);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isValidUrl]);
+  }, [isValidUrl, resetState]);
 
-  // Reset input when closed? Or keep it? Search resets.
   useEffect(() => {
-    if (!open) {
-      // setUrlInput(''); // Maybe keep it for better UX? Search clears it.
-      // setShowUrlPreview(false);
+    if (!showUrlPreview || !isValidUrl(urlInput)) {
+      setDebouncedUrl('');
+      return;
     }
-  }, [open]);
+    const timer = setTimeout(() => {
+      setDebouncedUrl(urlInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [urlInput, showUrlPreview, isValidUrl]);
 
   return (
     <div className="relative h-auto sm:h-[50px] w-full md:w-auto" ref={containerRef}>
@@ -231,27 +244,44 @@ export function PasteInput() {
                 className="absolute top-full left-0 mt-2 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50"
               >
                 <div className="p-5">
-                  {/* Domain & Favicon Header */}
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-4 h-4 rounded-sm bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                      {/* Placeholder favicon or real one if available */}
-                      <div className="w-2 h-2 bg-muted-foreground/30 rounded-full" />
+                      {metadata ? (
+                        <img
+                          src={metadata.faviconUrl}
+                          alt=""
+                          className="w-4 h-4"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-2 h-2 bg-muted-foreground/30 rounded-full" />
+                      )}
                     </div>
                     <span className="text-xs font-medium text-muted-foreground">
-                      {getDomain(urlInput)}
+                      {metadata?.domain ?? getDomain(urlInput)}
                     </span>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-[16px] font-bold text-foreground mb-1.5 leading-snug tracking-tight line-clamp-2">
-                    Example Article Title from URL
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-[14px] text-muted-foreground leading-relaxed line-clamp-2 font-normal">
-                    This is a sample description that would be fetched from the URL. It provides a
-                    brief overview of the article content.
-                  </p>
+                  {isLoadingMetadata ? (
+                    <>
+                      <div className="h-5 w-3/4 bg-muted rounded animate-pulse mb-2" />
+                      <div className="h-4 w-full bg-muted rounded animate-pulse mb-1" />
+                      <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-[16px] font-bold text-foreground mb-1.5 leading-snug tracking-tight line-clamp-2">
+                        {metadata?.title ?? getDomain(urlInput)}
+                      </h3>
+                      {metadata?.description && (
+                        <p className="text-[14px] text-muted-foreground leading-relaxed line-clamp-2 font-normal">
+                          {metadata.description}
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* Tag Input Footer */}
