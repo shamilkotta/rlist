@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { convexAction } from '@convex-dev/react-query';
+import { convexAction, useConvexAction } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 export function PasteInput() {
   const [open, setOpen] = useState(false);
@@ -48,9 +49,12 @@ export function PasteInput() {
   const shouldFetch = showUrlPreview && isValidUrl(debouncedUrl);
 
   const { data: metadata, isLoading: isLoadingMetadata } = useQuery({
-    ...convexAction(api.urls.fetchMetadata, shouldFetch ? { url: debouncedUrl } : 'skip'),
+    ...convexAction(api.articles.fetchMetadata, shouldFetch ? { url: debouncedUrl } : 'skip'),
     retry: false,
   });
+
+  const mutationFn = useConvexAction(api.articles.addArticle);
+  const addArticleMutation = useMutation({ mutationFn });
 
   const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -93,10 +97,23 @@ export function PasteInput() {
   }, []);
 
   const handleSubmit = () => {
-    if (isValidUrl(urlInput)) {
-      alert(`Submitting URL: ${urlInput}\nTags: ${tags.join(', ')}`);
-      resetState();
-    }
+    if (!isValidUrl(urlInput)) return;
+
+    addArticleMutation.mutate(
+      {
+        url: debouncedUrl || urlInput,
+        tags,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Article added');
+          resetState();
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Failed to add article');
+        },
+      }
+    );
   };
 
   useEffect(() => {
@@ -233,8 +250,9 @@ export function PasteInput() {
                 tabIndex={-1}
                 className="absolute right-1.5 top-1.5 bottom-1.5 h-auto px-4 rounded-[calc(var(--radius)-5px)] font-medium text-[12px] focus-visible:ring-0 focus-visible:ring-offset-0"
                 onClick={handleSubmit}
+                disabled={addArticleMutation.isPending}
               >
-                Add URL
+                {addArticleMutation.isPending ? 'Adding...' : 'Add URL'}
               </Button>
             </div>
 

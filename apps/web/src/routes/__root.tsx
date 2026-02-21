@@ -12,6 +12,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { AppSidebar } from '@/components/AppSidebar';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
 import appCss from '../styles.css?url';
 
 import { authClient } from '@/lib/auth-client';
@@ -89,6 +90,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="m-0 antialiased">
         <ThemeProvider defaultTheme="system" storageKey="rlist-theme">
+          <Toaster />
           <SidebarProvider defaultOpen={false}>
             <AppSidebar />
             <SidebarInset>{children}</SidebarInset>
