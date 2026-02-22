@@ -14,10 +14,17 @@ import {
 import { useSidebar } from '@/components/ui/sidebar';
 import { mapArticlesForDisplay } from '@/lib/article';
 import { authClient } from '@/lib/auth-client';
+import {
+  clearPendingArticleUrl,
+  getPendingArticleUrl,
+  setPendingArticleUrl,
+} from '@/lib/pending-article';
+import { useConvexAction } from '@convex-dev/react-query';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, useRouteContext } from '@tanstack/react-router';
+import { ConvexError } from 'convex/values';
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -30,7 +37,8 @@ import {
   Sparkles,
   TextAlignEnd,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleListItem } from '../components/ArticleListItem';
 import { PasteInput } from '../components/PasteInput';
@@ -51,6 +59,33 @@ function Home() {
     ...convexQuery(api.articles.listUserArticles),
     enabled: isAuthenticated,
   });
+
+  const addArticleMutationFn = useConvexAction(api.articles.addArticle);
+  const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const pendingUrl = getPendingArticleUrl();
+    if (!pendingUrl) return;
+    clearPendingArticleUrl();
+    addArticleMutation.mutate(
+      { url: pendingUrl, tags: [] },
+      {
+        onSuccess: () => toast.success('Article added'),
+        onError: (err) => {
+          if (
+            err instanceof ConvexError &&
+            'code' in err.data &&
+            err.data.code === 'ALREADY_SAVED_ARTICLE'
+          ) {
+            return;
+          }
+          toast.error(err instanceof ConvexError ? err.data.message : 'Failed to add article');
+          setPendingArticleUrl(pendingUrl);
+        },
+      }
+    );
+  }, [isAuthenticated, addArticleMutation]);
 
   if (!isAuthenticated) {
     return <LandingPage />;

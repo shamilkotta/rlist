@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { action, internalMutation, internalQuery, query } from './_generated/server';
@@ -40,6 +40,13 @@ export function normalizeUrl(url: string): string {
   return `https://${trimmed}`;
 }
 
+type FetchMetadataResult = {
+  title: string | null;
+  description: string | null;
+  faviconUrl: string;
+  domain: string;
+};
+
 export const fetchMetadata = action({
   args: { url: v.string() },
   returns: v.object({
@@ -49,41 +56,22 @@ export const fetchMetadata = action({
     domain: v.string(),
   }),
   handler: async (_ctx, args) => {
-    const fullUrl = normalizeUrl(args.url);
-    let domain: string;
-    try {
-      domain = new URL(fullUrl).hostname;
-    } catch {
+    const normalizedUrl = normalizeUrl(args.url);
+
+    const existingArticle = (await _ctx.runQuery(internal.articles.getArticleByUrl, {
+      url: normalizedUrl,
+    })) as FetchMetadataResult | null;
+
+    if (existingArticle) {
       return {
-        title: null,
-        description: null,
-        faviconUrl: `https://www.google.com/s2/favicons?domain=${args.url}&sz=32`,
-        domain: args.url,
+        title: existingArticle.title,
+        description: existingArticle.description,
+        faviconUrl: existingArticle.faviconUrl,
+        domain: existingArticle.domain,
       };
     }
 
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-
-    try {
-      const response = await fetch(fullUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; RListBot/1.0; +https://rlist.app)',
-          Accept: 'text/html',
-        },
-      });
-
-      if (!response.ok) {
-        return { title: null, description: null, faviconUrl, domain };
-      }
-
-      const html = await response.text();
-      const title = extractTitle(html);
-      const description = extractDescription(html);
-
-      return { title, description, faviconUrl, domain };
-    } catch {
-      return { title: null, description: null, faviconUrl, domain };
-    }
+    return await fetchMetadataForUrl(normalizedUrl);
   },
 });
 
@@ -137,6 +125,7 @@ export const getArticleByUrl = internalQuery({
   returns: v.union(
     v.object({
       _id: v.id('articles'),
+      _creationTime: v.number(),
       url: v.string(),
       title: v.union(v.string(), v.null()),
       description: v.union(v.string(), v.null()),
@@ -194,7 +183,10 @@ export const addArticleInternal = internalMutation({
       .unique();
 
     if (existingUserArticle) {
-      throw new Error('You have already saved this article');
+      throw new ConvexError({
+        code: 'ALREADY_SAVED_ARTICLE',
+        message: 'You have already saved this article',
+      });
     }
 
     const userArticleId = await ctx.db.insert('userArticles', {
@@ -222,14 +214,20 @@ export const addArticle = action({
   ): Promise<{ articleId: Id<'articles'>; userArticleId: Id<'userArticles'> }> => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) {
-      throw new Error('Authentication required');
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
     }
 
     const userId = user._id.toString();
     const normalizedUrl = normalizeUrl(args.url);
 
     if (!normalizedUrl) {
-      throw new Error('Invalid URL');
+      throw new ConvexError({
+        code: 'INVALID_URL',
+        message: 'Invalid URL',
+      });
     }
 
     const tags = args.tags
@@ -238,7 +236,10 @@ export const addArticle = action({
       .slice(0, 2);
     for (const tag of tags) {
       if (tag.length > 15) {
-        throw new Error('Each tag must be at most 15 characters');
+        throw new ConvexError({
+          code: 'TAG_TOO_LONG',
+          message: 'Each tag must be at most 15 characters',
+        });
       }
     }
 
@@ -289,7 +290,10 @@ export const listUserArticles = query({
   handler: async (ctx) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) {
-      throw new Error('Authentication required');
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
     }
 
     const userId = user._id.toString();

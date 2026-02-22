@@ -1,3 +1,9 @@
+export function normalizeUrl(url: string): string {
+  const trimmed = url.trim().replace(/\/+$/, '');
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export function isValidUrl(string: string): boolean {
   const trimmed = string.trim();
   if (!trimmed) return false;

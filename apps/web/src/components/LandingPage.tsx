@@ -1,8 +1,21 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import { ModeToggle } from '@/components/mode-toggle';
+import { setPendingArticleUrl } from '@/lib/pending-article';
+import { isValidUrl, normalizeUrl } from '@/lib/url';
 
 export function LandingPage() {
+  const navigate = useNavigate();
+  const [urlInput, setUrlInput] = useState('');
+
+  const handleSave = () => {
+    const trimmed = urlInput.trim();
+    if (trimmed && isValidUrl(trimmed)) {
+      setPendingArticleUrl(normalizeUrl(trimmed));
+    }
+    navigate({ to: '/signup' });
+  };
   return (
     <div className="bg-[#f6f7f8] dark:bg-[#0a0a0a] font-geist text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-foreground selection:text-background overflow-x-hidden">
       {/* Header */}
@@ -82,16 +95,24 @@ export function LandingPage() {
               <input
                 className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm sm:text-base h-10 focus:ring-0"
                 placeholder="https://example.com/article..."
-                readOnly
                 type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSave();
+                  }
+                }}
               />
-              <Link
-                to="/signup"
-                className="bg-foreground text-background text-sm font-semibold px-4 h-9 rounded-lg transition-all shadow-[0_0_15px_rgba(19,127,236,0.3)] hover:shadow-[0_0_25px_rgba(19,127,236,0.5)] flex items-center gap-2"
+              <button
+                type="button"
+                onClick={handleSave}
+                className="bg-foreground text-background text-sm font-semibold px-4 h-9 rounded-lg transition-all shadow-[0_0_15px_rgba(19,127,236,0.3)] hover:shadow-[0_0_25px_rgba(19,127,236,0.5)] flex items-center gap-2 hover:opacity-90"
               >
                 <span>Save</span>
                 <span className="hidden sm:inline opacity-70 text-xs font-normal">↵</span>
-              </Link>
+              </button>
             </div>
           </div>
 

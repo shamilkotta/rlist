@@ -6,6 +6,7 @@ import { getDomain, isValidUrl } from '@/lib/url';
 import { convexAction, useConvexAction } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { ConvexError } from 'convex/values';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -96,7 +97,15 @@ export function PasteInput() {
           resetState();
         },
         onError: (error) => {
-          toast.error(error instanceof Error ? error.message : 'Failed to add article');
+          if (
+            error instanceof ConvexError &&
+            'code' in error.data &&
+            error.data.code === 'ALREADY_SAVED_ARTICLE'
+          ) {
+            toast.error('Article already saved');
+            return;
+          }
+          toast.error(error instanceof ConvexError ? error.data.message : 'Failed to add article');
         },
       }
     );
