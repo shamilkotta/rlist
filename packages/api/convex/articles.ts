@@ -35,7 +35,7 @@ function extractDescription(html: string): string | null {
 }
 
 export function normalizeUrl(url: string): string {
-  const trimmed = url.trim();
+  const trimmed = url.trim().replace(/\/+$/, '');
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed}`;
 }
@@ -260,7 +260,7 @@ export const addArticle = action({
         domain: existingArticle.domain,
       };
     } else {
-      metadata = await fetchMetadataForUrl(args.url);
+      metadata = await fetchMetadataForUrl(normalizedUrl);
     }
 
     return await ctx.runMutation(internal.articles.addArticleInternal, {
