@@ -1,50 +1,35 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useClickOutside } from '@/hooks/use-click-outside';
+import { useDebounce } from '@/hooks/use-debounce';
+import { getDomain, isValidUrl } from '@/lib/url';
 import { convexAction, useConvexAction } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Link2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+
+const MAX_TAGS = 2;
+const TAG_MAX_LENGTH = 15;
+const URL_DEBOUNCE_MS = 500;
+
+function LinkIcon({ className }: { className?: string }) {
+  return <Link2 className={className} size={16} strokeWidth={2} aria-hidden />;
+}
 
 export function PasteInput() {
   const [open, setOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
-  const [debouncedUrl, setDebouncedUrl] = useState('');
   const [showUrlPreview, setShowUrlPreview] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const urlPreviewRef = useRef<HTMLDivElement>(null);
 
-  const isValidUrl = useCallback((string: string) => {
-    const trimmed = string.trim();
-    if (!trimmed) return false;
-
-    if (/^https?:\/\/.+/.test(trimmed)) {
-      try {
-        new URL(trimmed);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    const domainPattern = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/.*)?$/;
-    return domainPattern.test(trimmed);
-  }, []);
-
-  const getDomain = (url: string) => {
-    try {
-      if (!url.startsWith('http')) {
-        return new URL(`https://${url}`).hostname;
-      }
-      return new URL(url).hostname;
-    } catch {
-      return '';
-    }
-  };
+  const valueToDebounce = showUrlPreview && isValidUrl(urlInput) ? urlInput : '';
+  const debouncedUrl = useDebounce(valueToDebounce, URL_DEBOUNCE_MS);
 
   const shouldFetch = showUrlPreview && isValidUrl(debouncedUrl);
 
@@ -56,6 +41,16 @@ export function PasteInput() {
   const mutationFn = useConvexAction(api.articles.addArticle);
   const addArticleMutation = useMutation({ mutationFn });
 
+  const resetState = useCallback(() => {
+    setOpen(false);
+    setUrlInput('');
+    setShowUrlPreview(false);
+    setTags([]);
+    setTagInput('');
+  }, []);
+
+  useClickOutside(containerRef, resetState);
+
   const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setUrlInput(value);
@@ -64,7 +59,7 @@ export function PasteInput() {
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value.length <= 15) {
+    if (value.length <= TAG_MAX_LENGTH) {
       setTagInput(value);
     }
   };
@@ -73,7 +68,7 @@ export function PasteInput() {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const newTag = tagInput.trim().toUpperCase();
-      if (newTag && tags.length < 2 && !tags.includes(newTag)) {
+      if (newTag && tags.length < MAX_TAGS && !tags.includes(newTag)) {
         setTags([...tags, newTag]);
         setTagInput('');
       }
@@ -86,15 +81,6 @@ export function PasteInput() {
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
-
-  const resetState = useCallback(() => {
-    setOpen(false);
-    setUrlInput('');
-    setDebouncedUrl('');
-    setShowUrlPreview(false);
-    setTags([]);
-    setTagInput('');
-  }, []);
 
   const handleSubmit = () => {
     if (!isValidUrl(urlInput)) return;
@@ -117,12 +103,6 @@ export function PasteInput() {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        resetState();
-      }
-    };
-
     const handlePaste = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement;
       if (
@@ -139,9 +119,6 @@ export function PasteInput() {
         setOpen(true);
         const valid = isValidUrl(text);
         setShowUrlPreview(valid);
-        if (valid) {
-          setDebouncedUrl(text);
-        }
       }
     };
 
@@ -151,26 +128,13 @@ export function PasteInput() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('paste', handlePaste);
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('paste', handlePaste);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isValidUrl, resetState]);
-
-  useEffect(() => {
-    if (!showUrlPreview || !isValidUrl(urlInput)) {
-      setDebouncedUrl('');
-      return;
-    }
-    const timer = setTimeout(() => {
-      setDebouncedUrl(urlInput);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [urlInput, showUrlPreview, isValidUrl]);
+  }, [resetState]);
 
   return (
     <div className="relative h-auto sm:h-[50px] w-full md:w-auto" ref={containerRef}>
@@ -186,21 +150,7 @@ export function PasteInput() {
             className="relative flex items-center h-11 cursor-text w-full md:w-[320px] px-3 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground transition-colors z-10 focus:outline-none"
           >
             <div className="flex items-center pointer-events-none mr-3">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-muted-foreground/50"
-              >
-                <title>Link icon</title>
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
+              <LinkIcon className="text-muted-foreground/50" />
             </div>
             <span className="text-[15px]">Paste a URL to save...</span>
           </motion.button>
@@ -217,21 +167,7 @@ export function PasteInput() {
           >
             <div className="relative flex items-center h-11 group bg-background border border-border rounded-md">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-muted-foreground/50"
-                >
-                  <title>Link icon</title>
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg>
+                <LinkIcon className="text-muted-foreground/50" />
               </div>
               <Input
                 autoFocus
@@ -302,7 +238,6 @@ export function PasteInput() {
                   )}
                 </div>
 
-                {/* Tag Input Footer */}
                 <div className="px-5 py-3 bg-background border-t border-border flex items-center gap-2 flex-wrap min-h-[50px]">
                   {tags.map((tag) => (
                     <div
@@ -319,7 +254,7 @@ export function PasteInput() {
                       </button>
                     </div>
                   ))}
-                  {tags.length < 2 && (
+                  {tags.length < MAX_TAGS && (
                     <input
                       type="text"
                       value={tagInput}

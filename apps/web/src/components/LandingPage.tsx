@@ -42,7 +42,7 @@ export function LandingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow pt-24 pb-12">
+      <main className="grow pt-24 pb-12">
         {/* Subtle Grid Background */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none mix-blend-soft-light"
@@ -61,7 +61,7 @@ export function LandingPage() {
         />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center mt-8">
           {/* Hero Text */}
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
+          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl bg-clip-text text-transparent bg-linear-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
             Your digital library,
             <br />
             simplified.
@@ -98,7 +98,7 @@ export function LandingPage() {
           {/* Dashboard Screenshot */}
           <div className="relative w-full max-w-4xl mx-auto mb-24 group perspective-1000">
             {/* Glow Effect */}
-            <div className="absolute -inset-1 bg-gradient-to-t from-[#137fec]/20 via-transparent to-transparent rounded-xl blur-2xl opacity-50 group-hover:opacity-70 transition duration-700" />
+            <div className="absolute -inset-1 bg-linear-to-t from-[#137fec]/20 via-transparent to-transparent rounded-xl blur-2xl opacity-50 group-hover:opacity-70 transition duration-700" />
             {/* Mockup Container */}
             <div className="relative rounded-xl border border-slate-200 dark:border-[#333333] bg-slate-50 dark:bg-[#111111] overflow-hidden shadow-2xl">
               {/* Fake Browser Header */}
@@ -108,7 +108,7 @@ export function LandingPage() {
                 <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
               </div>
               {/* Image */}
-              <div className="aspect-[16/10] w-full bg-slate-100 dark:bg-[#050505] relative overflow-hidden">
+              <div className="aspect-16/10 w-full bg-slate-100 dark:bg-[#050505] relative overflow-hidden">
                 {/* Abstract UI Representation */}
                 <div className="absolute inset-0 flex flex-col p-6 gap-4">
                   {/* Sidebar & Content Layout */}

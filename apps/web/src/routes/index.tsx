@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
+import { mapArticlesForDisplay } from '@/lib/article';
 import { authClient } from '@/lib/auth-client';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
@@ -35,22 +36,6 @@ import { ArticleListItem } from '../components/ArticleListItem';
 import { PasteInput } from '../components/PasteInput';
 import { Search } from '../components/Search';
 
-function formatArticleDate(creationTime: number): string {
-  const now = Date.now();
-  const diffMs = now - creationTime;
-  const diffMins = Math.floor(diffMs / 60_000);
-  const diffHours = Math.floor(diffMs / 3_600_000);
-  const diffDays = Math.floor(diffMs / 86_400_000);
-
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(creationTime).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 export const Route = createFileRoute('/')({
   component: Home,
 });
@@ -71,16 +56,7 @@ function Home() {
     return <LandingPage />;
   }
 
-  const articles =
-    userArticles?.map((a) => ({
-      id: a.articleId,
-      title: a.title ?? a.domain,
-      description: a.description ?? '',
-      domain: a.domain,
-      date: formatArticleDate(a._creationTime),
-      tags: a.tags,
-      faviconUrl: a.faviconUrl,
-    })) ?? [];
+  const articles = mapArticlesForDisplay(userArticles);
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-muted">
@@ -300,7 +276,7 @@ function Home() {
           ) : (
             <>
               <div
-                className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-dashed border-border`}
+                className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
               >
                 {articles.map((article) => (
                   <ArticleCard key={article.id} {...article} />
