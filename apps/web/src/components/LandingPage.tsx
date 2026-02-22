@@ -1,135 +1,285 @@
-import { Button } from '@/components/ui/button';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { ModeToggle } from './mode-toggle';
+
+import { ModeToggle } from '@/components/mode-toggle';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/10">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/80 backdrop-blur-md">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
-          <div className="flex items-center gap-2 group">
-            <div className="w-6 h-6 bg-primary rounded-[6px] flex items-center justify-center group-hover:bg-primary/90 transition-colors">
-              <ArrowUpRight className="w-3.5 h-3.5 text-primary-foreground" />
+    <div className="bg-[#f6f7f8] dark:bg-[#0a0a0a] font-geist text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-foreground selection:text-background overflow-x-hidden">
+      {/* Header */}
+      <header className="fixed top-0 z-50 w-full border-b border-slate-200 dark:border-[#333333] bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 text-slate-900 dark:text-white">
+                <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <title>Reader logo</title>
+                  <path
+                    d="M4 19V5C4 3.89543 4.89543 3 6 3H19C19.5523 3 20 3.44772 20 4V20C20 20.5523 19.5523 21 19 21H6C4.89543 21 4 20.1046 4 19ZM6 5H18V19H6V5Z"
+                    fill="currentColor"
+                    fillOpacity={0.2}
+                  />
+                  <path
+                    d="M4 5C4 3.89543 4.89543 3 6 3H19C19.5523 3 20 3.44772 20 4V19H6C4.89543 19 4 18.1046 4 17V5Z"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  />
+                  <path d="M8 8H16" stroke="currentColor" strokeLinecap="round" strokeWidth={2} />
+                  <path d="M8 12H13" stroke="currentColor" strokeLinecap="round" strokeWidth={2} />
+                </svg>
+              </div>
+              <span className="font-bold text-lg tracking-tight">Reader</span>
             </div>
-            <span className="font-bold text-lg tracking-tight">ReadList</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
-              <Link to="/login">Sign in</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/signup">Get Started</Link>
-            </Button>
-            <div className="h-4 w-px bg-border mx-2 hidden sm:block" />
-            <ModeToggle />
+            {/* Auth Button */}
+            <Link
+              to="/login"
+              className="text-sm font-medium px-4 py-2 rounded-lg transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+            >
+              Sign In
+            </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center relative px-4 overflow-hidden pt-[60px]">
-        {/* Background Grid Pattern */}
-        <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-size-[6rem_4rem] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] opacity-[0.2]" />
+      {/* Main Content */}
+      <main className="flex-grow pt-24 pb-12">
+        {/* Subtle Grid Background */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none mix-blend-soft-light"
+          style={{
+            backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')",
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, #80808012 1px, transparent 1px), linear-gradient(to bottom, #80808012 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)',
+          }}
+        />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center mt-8">
+          {/* Hero Text */}
+          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
+            Your digital library,
+            <br />
+            simplified.
+          </h1>
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-[#888888] max-w-2xl mb-10 leading-relaxed">
+            The fastest way to save, organize, and rediscover the content you love. Built for speed
+            and simplicity.
+          </p>
 
-        <div className="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-16 md:py-24 relative z-10">
-          {/* Left Column: Content */}
-          <div className="text-center lg:text-left space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 text-muted-foreground text-[11px] font-medium mb-6 border border-border/50">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+          {/* Interactive Input Simulation */}
+          <div className="w-full max-w-lg relative group mb-16">
+            <div className="relative flex items-center bg-white dark:bg-black border border-slate-200 dark:border-[#333333] rounded-xl p-2 shadow-2xl">
+              <div className="pl-3 pr-2 text-slate-400 dark:text-slate-500">
+                <span className="material-symbols-outlined text-xl" style={{ lineHeight: 'unset' }}>
+                  link
                 </span>
-                Now in public beta
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent leading-[1.15]">
-                Your personal reading list,
-                <br />
-                curated for focus.
-              </h1>
-              <p className="text-base md:text-lg text-muted-foreground max-w-[550px] lg:mx-0 mx-auto leading-relaxed">
-                ReadList helps you capture and organize articles, newsletters, and papers. No
-                distractions, just a beautiful space for your knowledge.
+              <input
+                className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm sm:text-base h-10 focus:ring-0"
+                placeholder="https://example.com/article..."
+                readOnly
+                type="text"
+              />
+              <Link
+                to="/signup"
+                className="bg-foreground text-background text-sm font-semibold px-4 h-9 rounded-lg transition-all shadow-[0_0_15px_rgba(19,127,236,0.3)] hover:shadow-[0_0_25px_rgba(19,127,236,0.5)] flex items-center gap-2"
+              >
+                <span>Save</span>
+                <span className="hidden sm:inline opacity-70 text-xs font-normal">↵</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Dashboard Screenshot */}
+          <div className="relative w-full max-w-4xl mx-auto mb-24 group perspective-1000">
+            {/* Glow Effect */}
+            <div className="absolute -inset-1 bg-gradient-to-t from-[#137fec]/20 via-transparent to-transparent rounded-xl blur-2xl opacity-50 group-hover:opacity-70 transition duration-700" />
+            {/* Mockup Container */}
+            <div className="relative rounded-xl border border-slate-200 dark:border-[#333333] bg-slate-50 dark:bg-[#111111] overflow-hidden shadow-2xl">
+              {/* Fake Browser Header */}
+              <div className="h-8 border-b border-slate-200 dark:border-[#333333] flex items-center px-4 gap-2 bg-white/50 dark:bg-black/50">
+                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
+                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
+              </div>
+              {/* Image */}
+              <div className="aspect-[16/10] w-full bg-slate-100 dark:bg-[#050505] relative overflow-hidden">
+                {/* Abstract UI Representation */}
+                <div className="absolute inset-0 flex flex-col p-6 gap-4">
+                  {/* Sidebar & Content Layout */}
+                  <div className="flex gap-6 h-full">
+                    {/* Sidebar Mock */}
+                    <div className="w-48 hidden sm:flex flex-col gap-3 border-r border-slate-200 dark:border-[#333333] pr-6 opacity-40">
+                      <div className="h-4 w-24 bg-slate-300 dark:bg-slate-700 rounded mb-4" />
+                      <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+                      <div className="h-3 w-3/4 bg-slate-200 dark:bg-slate-800 rounded" />
+                      <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                    {/* List View Mock */}
+                    <div className="flex-1 flex flex-col gap-4">
+                      {/* List Item 1 */}
+                      <div className="h-16 w-full border border-slate-200 dark:border-[#333333] rounded-lg flex items-center px-4 gap-4 bg-white dark:bg-black">
+                        <div className="h-8 w-8 rounded bg-[#137fec]/20 flex items-center justify-center text-[#137fec]">
+                          {/* <span className="material-symbols-outlined text-[18px]">article</span> */}
+                          <span className="material-symbols-outlined text-[18px]">link</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="h-3 w-48 bg-slate-300 dark:bg-slate-700 rounded mb-2" />
+                          <div className="h-2 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                      </div>
+                      {/* List Item 2 */}
+                      <div className="h-16 w-full border border-slate-200 dark:border-[#333333] rounded-lg flex items-center px-4 gap-4 bg-white dark:bg-black opacity-80">
+                        <div className="h-8 w-8 rounded bg-purple-500/20 flex items-center justify-center text-purple-500">
+                          {/* <span className="material-symbols-outlined text-[18px]">
+                            video_library
+                          </span> */}
+                          <span className="material-symbols-outlined text-[18px]">link</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="h-3 w-64 bg-slate-300 dark:bg-slate-700 rounded mb-2" />
+                          <div className="h-2 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                      </div>
+                      {/* List Item 3 */}
+                      <div className="h-16 w-full border border-slate-200 dark:border-[#333333] rounded-lg flex items-center px-4 gap-4 bg-white dark:bg-black opacity-60">
+                        <div className="h-8 w-8 rounded bg-green-500/20 flex items-center justify-center text-green-500">
+                          {/* <span className="material-symbols-outlined text-[18px]">image</span> */}
+                          <span className="material-symbols-outlined text-[18px]">link</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="h-3 w-40 bg-slate-300 dark:bg-slate-700 rounded mb-2" />
+                          <div className="h-2 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                      </div>
+                      {/* List Item 4 */}
+                      <div className="h-16 w-full border border-slate-200 dark:border-[#333333] rounded-lg flex items-center px-4 gap-4 bg-white dark:bg-black opacity-40">
+                        <div className="h-8 w-8 rounded bg-orange-500/20 flex items-center justify-center text-orange-500">
+                          <span className="material-symbols-outlined text-[18px]">link</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="h-3 w-56 bg-slate-300 dark:bg-slate-700 rounded mb-2" />
+                          <div className="h-2 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl mb-24 px-4">
+            {/* Feature 1 */}
+            <div className="flex flex-col items-start text-left p-6 rounded-2xl bg-white dark:bg-[#111111] border border-slate-200 dark:border-[#333333] transition hover:border-slate-300 dark:hover:border-slate-700">
+              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4 text-slate-900 dark:text-white">
+                <span className="material-symbols-outlined">search</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Search</h3>
+              <p className="text-slate-600 dark:text-[#888888] text-sm leading-relaxed">
+                Instant full-text search across all your saved links. Find exactly what you need in
+                milliseconds.
               </p>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Button
-                size="lg"
-                className="rounded-full px-8 h-12 text-[15px] font-medium w-full sm:w-auto"
-                asChild
-              >
-                <Link to="/signup">
-                  Get Started for Free <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                className="rounded-full px-8 h-12 text-[15px] font-medium w-full sm:w-auto"
-                asChild
-              >
-                <Link to="/login">Sign in to your account</Link>
-              </Button>
+            {/* Feature 2 */}
+            <div className="flex flex-col items-start text-left p-6 rounded-2xl bg-white dark:bg-[#111111] border border-slate-200 dark:border-[#333333] transition hover:border-slate-300 dark:hover:border-slate-700">
+              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4 text-slate-900 dark:text-white">
+                <span className="material-symbols-outlined">folder_open</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Group</h3>
+              <p className="text-slate-600 dark:text-[#888888] text-sm leading-relaxed">
+                Tag and categorize with zero friction. Create smart collections that organize
+                themselves.
+              </p>
+            </div>
+            {/* Feature 3 */}
+            <div className="flex flex-col items-start text-left p-6 rounded-2xl bg-white dark:bg-[#111111] border border-slate-200 dark:border-[#333333] transition hover:border-slate-300 dark:hover:border-slate-700">
+              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4 text-slate-900 dark:text-white">
+                <span className="material-symbols-outlined">menu_book</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Read</h3>
+              <p className="text-slate-600 dark:text-[#888888] text-sm leading-relaxed">
+                Distraction-free reader view built-in. Strip away ads and clutter for pure reading
+                focus.
+              </p>
             </div>
           </div>
 
-          {/* Right Column: Mockup */}
-          <div className="relative animate-in fade-in slide-in-from-right-12 duration-1000 delay-200">
-            <div
-              className="relative aspect-video lg:aspect-square xl:aspect-video rounded-2xl overflow-hidden border border-border/50 shadow-[0_0_50px_-12px_rgba(0,0,0,0.3)] shadow-primary/10 bg-background/50 backdrop-blur-sm p-1"
-              style={{
-                transform: 'perspective(2000px) rotateY(-15deg) rotateX(5deg) scale(1.1)',
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              <img
-                src="/mockup-light.png"
-                alt=""
-                className="w-full h-full object-cover object-top rounded-xl border border-border/40 dark:hidden"
-              />
-              <img
-                src="/mockup-dark.png"
-                alt=""
-                className="w-full h-full object-cover object-top rounded-xl border border-border/40 hidden dark:block"
-              />
+          {/* CTA Section */}
+          <div className="w-full max-w-3xl relative">
+            {/* <div className="absolute inset-0 bg-gradient-radial from-[#137fec]/20 to-transparent blur-3xl -z-10" /> */}
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+              Start your library today.
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {/* <Link
+                to="/signup"
+                className="px-8 py-3 rounded-lg bg-[#137fec] hover:bg-[#0b5cb5] text-white font-semibold transition-all shadow-lg shadow-[#137fec]/25"
+              >
+                Get Started for Free
+              </Link> */}
+              <Link
+                to="/signup"
+                className="px-8 py-3 rounded-lg border border-slate-200 dark:border-[#333333] bg-white dark:bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 text-slate-900 dark:text-white font-medium transition-colors"
+              >
+                Get Started
+              </Link>
             </div>
-
-            {/* Floating UI Elements (Decorative) */}
-            <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 blur-[60px] rounded-full animate-pulse" />
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/5 blur-[80px] rounded-full" />
           </div>
         </div>
-
-        {/* Soft Background Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/5 blur-[120px] rounded-full -z-10" />
       </main>
 
-      {/* Footer - Minimal */}
-      <footer className="bg-background py-10">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5 text-muted-foreground/60 text-[13px] font-medium">
-            <div className="w-5 h-5 bg-muted/50 rounded flex items-center justify-center">
-              <ArrowUpRight className="w-2.5 h-2.5" />
+      {/* Footer */}
+      <footer className="border-t border-slate-200 dark:border-[#333333] py-10 bg-white dark:bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 text-slate-400 dark:text-slate-600">
+            <div className="w-5 h-5">
+              <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <title>Reader logo</title>
+                <path
+                  d="M4 19V5C4 3.89543 4.89543 3 6 3H19C19.5523 3 20 3.44772 20 4V20C20 20.5523 19.5523 21 19 21H6C4.89543 21 4 20.1046 4 19ZM6 5H18V19H6V5Z"
+                  fill="currentColor"
+                />
+              </svg>
             </div>
-            <span>ReadList © 2024</span>
+            <span className="text-sm">© 2024 Minimalist Reader.</span>
           </div>
-
-          <div className="flex items-center gap-6 text-[13px] text-muted-foreground/60 font-medium">
-            <Link to="/" className="hover:text-foreground transition-colors">
+          <div className="flex gap-8">
+            <Link
+              to="/"
+              className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors"
+            >
               Privacy
             </Link>
-            <Link to="/" className="hover:text-foreground transition-colors">
+            <Link
+              to="/"
+              className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors"
+            >
               Terms
             </Link>
-            <Link to="/" className="hover:text-foreground transition-colors">
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors"
+            >
+              Twitter
+            </a>
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors"
+            >
               GitHub
-            </Link>
-            <Link to="/" className="hover:text-foreground transition-colors">
-              Contact
-            </Link>
+            </a>
+            <ModeToggle />
           </div>
         </div>
       </footer>

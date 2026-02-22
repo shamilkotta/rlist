@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  useLocation,
   useRouteContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
@@ -39,13 +40,30 @@ export const Route = createRootRouteWithContext<{
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'ReadList - Curate your knowledge base',
+        title: 'Reader - Your digital library, simplified',
       },
     ],
     links: [
       {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
       },
     ],
   }),
@@ -69,20 +87,29 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   const context = useRouteContext({ from: Route.id });
+  const location = useLocation();
+  const showLandingLayout = location.pathname === '/' && !context.isAuthenticated;
+
   return (
     <ConvexBetterAuthProvider
       client={context.convexQueryClient.convexClient}
       authClient={authClient}
       initialToken={context.token}
     >
-      <RootDocument>
+      <RootDocument showLandingLayout={showLandingLayout}>
         <Outlet />
       </RootDocument>
     </ConvexBetterAuthProvider>
   );
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({
+  children,
+  showLandingLayout,
+}: {
+  children: React.ReactNode;
+  showLandingLayout: boolean;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -92,8 +119,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ThemeProvider defaultTheme="system" storageKey="rlist-theme">
           <Toaster />
           <SidebarProvider defaultOpen={false}>
-            <AppSidebar />
-            <SidebarInset>{children}</SidebarInset>
+            {!showLandingLayout && <AppSidebar />}
+            <SidebarInset className={showLandingLayout ? '!p-0 !min-h-screen' : undefined}>
+              {children}
+            </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
         <TanStackDevtools
