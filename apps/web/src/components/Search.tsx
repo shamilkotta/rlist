@@ -1,44 +1,42 @@
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDebounce } from '@/hooks/use-debounce';
+import { mapArticlesForDisplay } from '@/lib/article';
+import { convexQuery } from '@convex-dev/react-query';
+import { api } from '@rlist/api/convex/_generated/api';
+import { useQuery } from '@tanstack/react-query';
+import { useRouteContext } from '@tanstack/react-router';
 import { Command } from 'cmdk';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search as SearchIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-
-// Mock data for search suggestions
-const searchItems = [
-  {
-    id: 1,
-    title: 'React Server Components: A Comprehensive Guide',
-    domain: 'react.dev',
-    date: '2h ago',
-    faviconUrl: 'https://react.dev/favicon.ico',
-  },
-  {
-    id: 2,
-    title: 'Designing reliable systems for scale',
-    domain: 'stripe.com',
-    date: 'Dec 14',
-    faviconUrl: 'https://stripe.com/favicon.ico',
-  },
-  {
-    id: 3,
-    title: 'The craft of interaction design',
-    domain: 'linear.app',
-    date: 'Dec 12',
-    faviconUrl: 'https://linear.app/favicon.ico',
-  },
-  {
-    id: 4,
-    title: 'Zero-config backends on AI Cloud',
-    domain: 'vercel.com',
-    date: 'Dec 10',
-    faviconUrl: 'https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico',
-  },
-];
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export function Search() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 250);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated } = useRouteContext({ from: '/' });
+
+  const hasSearchQuery = debouncedQuery.trim().length > 0;
+
+  const { data: recentArticles } = useQuery({
+    ...convexQuery(api.articles.listUserArticles),
+    enabled: isAuthenticated && open,
+  });
+
+  const { data: searchResults, isLoading: isSearchLoading } = useQuery({
+    ...convexQuery(api.articles.searchUserArticles, { query: debouncedQuery }),
+    enabled: isAuthenticated && open && hasSearchQuery,
+  });
+
+  const defaultArticles = useMemo(
+    () => mapArticlesForDisplay(recentArticles).slice(0, 10),
+    [recentArticles]
+  );
+  const searchArticles = useMemo(() => mapArticlesForDisplay(searchResults), [searchResults]);
+
+  const articles = hasSearchQuery ? searchArticles : defaultArticles;
+  const isSearching = hasSearchQuery && (isSearchLoading || query !== debouncedQuery);
 
   useEffect(() => {
     if (!open) {
@@ -70,6 +68,11 @@ export function Search() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  function handleSelect(url: string) {
+    setOpen(false);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 
   return (
     <div className="relative w-9 sm:w-[200px] md:w-[300px] h-9" ref={containerRef}>
@@ -117,7 +120,7 @@ export function Search() {
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             className="fixed sm:absolute top-4 sm:top-0 left-1/2 sm:left-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 z-100 bg-background border border-border rounded-xl overflow-hidden w-[calc(100vw-32px)] sm:w-[380px] md:w-[450px] shadow-2xl"
           >
-            <Command className="w-full bg-transparent" loop>
+            <Command className="w-full bg-transparent" loop shouldFilter={false}>
               <div className="flex items-center border-b border-border px-3 h-[52px]">
                 <motion.div
                   layoutId="search-icon"
@@ -141,36 +144,55 @@ export function Search() {
                 </motion.kbd>
               </div>
               <Command.List className="max-h-[360px] overflow-y-auto p-2 scroll-py-2">
-                <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
-                  No results found.
-                </Command.Empty>
-
-                <Command.Group className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
-                  {searchItems.map((item) => (
-                    <Command.Item
-                      key={item.id}
-                      onSelect={() => setOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-foreground cursor-pointer transition-colors aria-selected:bg-muted"
-                    >
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[13px] font-medium truncate">{item.title}</span>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <img
-                            src={item.faviconUrl}
-                            alt={item.domain}
-                            className="w-3 h-3 object-contain"
-                          />
-                          <span className="text-[11px] font-mono tracking-tight">
-                            {item.domain}
-                          </span>
+                {isSearching ? (
+                  <div className="px-2 py-1.5 space-y-1">
+                    {['sk-1', 'sk-2', 'sk-3', 'sk-4'].map((key) => (
+                      <div key={key} className="flex items-center gap-3 px-2 py-2.5">
+                        <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                          <Skeleton className="h-3.5 w-3/4" />
+                          <Skeleton className="h-3 w-1/3" />
                         </div>
+                        <Skeleton className="h-3 w-10 shrink-0" />
                       </div>
-                      <div className="ml-auto text-[11px] text-muted-foreground whitespace-nowrap">
-                        {item.date}
-                      </div>
-                    </Command.Item>
-                  ))}
-                </Command.Group>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
+                      {!isAuthenticated
+                        ? 'Sign in to search your articles.'
+                        : 'No matching articles.'}
+                    </Command.Empty>
+
+                    <Command.Group className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
+                      {articles.map((item) => (
+                        <Command.Item
+                          key={item.id}
+                          value={item.id}
+                          onSelect={() => handleSelect(item.url)}
+                          className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-foreground cursor-pointer transition-colors aria-selected:bg-muted"
+                        >
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[13px] font-medium truncate">{item.title}</span>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <img
+                                src={item.faviconUrl}
+                                alt={item.domain}
+                                className="w-3 h-3 object-contain"
+                              />
+                              <span className="text-[11px] font-mono tracking-tight">
+                                {item.domain}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-auto text-[11px] text-muted-foreground whitespace-nowrap">
+                            {item.date}
+                          </div>
+                        </Command.Item>
+                      ))}
+                    </Command.Group>
+                  </>
+                )}
               </Command.List>
             </Command>
           </motion.div>

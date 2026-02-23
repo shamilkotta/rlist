@@ -321,6 +321,72 @@ export const updateArticleTags = mutation({
   },
 });
 
+// TODO: revisit this query
+export const searchUserArticles = query({
+  args: { query: v.string() },
+  returns: v.array(
+    v.object({
+      articleId: v.id('articles'),
+      url: v.string(),
+      title: v.union(v.string(), v.null()),
+      description: v.union(v.string(), v.null()),
+      domain: v.string(),
+      faviconUrl: v.string(),
+      tags: v.array(v.string()),
+      _creationTime: v.number(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
+
+    const searchQuery = args.query.trim().toLowerCase();
+    if (!searchQuery) return [];
+
+    const terms = searchQuery.split(/\s+/).filter(Boolean);
+    const userId = user._id.toString();
+
+    const userArticles = await ctx.db
+      .query('userArticles')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .order('desc')
+      .collect();
+
+    const result = [];
+    for (const ua of userArticles) {
+      if (result.length >= 10) break;
+
+      const article = await ctx.db.get(ua.articleId);
+      if (!article) continue;
+
+      const searchable = [article.title, article.description, article.url]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      if (!terms.every((term) => searchable.includes(term))) continue;
+
+      result.push({
+        articleId: article._id,
+        url: article.url,
+        title: article.title,
+        description: article.description,
+        domain: article.domain,
+        faviconUrl: article.faviconUrl,
+        tags: ua.tags,
+        _creationTime: ua._creationTime,
+      });
+    }
+
+    return result;
+  },
+});
+
 export const listUserArticles = query({
   args: {},
   returns: v.array(

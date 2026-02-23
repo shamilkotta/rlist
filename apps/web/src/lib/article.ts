@@ -3,6 +3,7 @@ import { formatRelativeDate } from './date';
 
 export type ArticleForDisplay = {
   id: Id<'articles'>;
+  url: string;
   title: string;
   description: string;
   domain: string;
@@ -13,6 +14,7 @@ export type ArticleForDisplay = {
 
 type RawArticle = {
   articleId: Id<'articles'>;
+  url: string;
   title: string | null;
   description: string | null;
   domain: string;
@@ -26,6 +28,7 @@ export function mapArticlesForDisplay(articles: RawArticle[] | undefined): Artic
 
   return articles.map((a) => ({
     id: a.articleId,
+    url: a.url,
     title: a.title ?? a.domain,
     description: a.description ?? '',
     domain: a.domain,
