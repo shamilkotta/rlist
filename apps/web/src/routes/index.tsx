@@ -49,6 +49,7 @@ type TabFilter = 'unread' | 'all' | 'archive';
 
 const validTabs: TabFilter[] = ['unread', 'all', 'archive'];
 const skeletonKeys = ['s1', 's2', 's3', 's4', 's5', 's6'];
+const viewModeStorageKey = 'rlist:view-mode';
 
 const tabs: { label: string; value: TabFilter }[] = [
   { label: 'Unread', value: 'unread' },
@@ -82,6 +83,17 @@ function Home() {
 
   const addArticleMutationFn = useConvexAction(api.articles.addArticle);
   const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
+
+  useEffect(() => {
+    const savedViewMode = window.localStorage.getItem(viewModeStorageKey);
+    if (savedViewMode === 'grid' || savedViewMode === 'list') {
+      setViewMode(savedViewMode);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(viewModeStorageKey, viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -118,7 +130,7 @@ function Home() {
       {/* Fixed Logo - stays in place while scrolling */}
       <a
         href="/"
-        className="fixed left-4 sm:left-6 top-[17px] z-60 flex items-center group"
+        className="fixed left-4 sm:left-6 top-[17px] z-80 flex items-center group"
         style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
       >
         <div className="w-6 h-6 bg-primary rounded-[6px] flex items-center justify-center group-hover:bg-primary/90 transition-colors">
@@ -127,7 +139,7 @@ function Home() {
       </a>
 
       {/* Header - scrolls away */}
-      <header className="z-40 w-full bg-background">
+      <header className="z-60 w-full bg-background">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-8">
             {/* Spacer for fixed logo */}

@@ -1,5 +1,6 @@
 import { ArticleActions } from '@/components/ArticleActions';
 import { TagEditor } from '@/components/TagEditor';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { Id } from '@rlist/api/convex/_generated/dataModel';
 
@@ -16,6 +17,29 @@ interface ArticleCardProps {
   isArchived: boolean;
 }
 
+function CardCorners() {
+  return (
+    <>
+      <div className="absolute -top-2 -left-2 w-4 h-4">
+        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
+        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
+      </div>
+      <div className="absolute -top-2 -right-2 w-4 h-4">
+        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
+        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
+      </div>
+      <div className="absolute -bottom-2 -left-2 w-4 h-4">
+        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
+        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
+      </div>
+      <div className="absolute -bottom-2 -right-2 w-4 h-4">
+        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
+        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
+      </div>
+    </>
+  );
+}
+
 export function ArticleCard({
   id,
   title,
@@ -29,27 +53,7 @@ export function ArticleCard({
 }: ArticleCardProps) {
   return (
     <div className="relative group h-full p-4 lg:p-6 cursor-pointer flex flex-col border-r border-b border-dashed border-border">
-      {/* Corner crosses */}
-      {/* Top-left corner */}
-      <div className="absolute -top-2 -left-2 w-4 h-4">
-        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
-      </div>
-      {/* Top-right corner */}
-      <div className="absolute -top-2 -right-2 w-4 h-4">
-        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
-      </div>
-      {/* Bottom-left corner */}
-      <div className="absolute -bottom-2 -left-2 w-4 h-4">
-        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
-      </div>
-      {/* Bottom-right corner */}
-      <div className="absolute -bottom-2 -right-2 w-4 h-4">
-        <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-border -translate-x-1/2" />
-      </div>
+      <CardCorners />
       <div className="flex items-center justify-between mb-3 md:mb-6">
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 rounded-[4px] bg-muted flex items-center justify-center overflow-hidden border border-border">
@@ -90,6 +94,34 @@ export function ArticleCard({
 
       <div className="mt-auto">
         <TagEditor articleId={id} initialTags={tags} />
+      </div>
+    </div>
+  );
+}
+
+export function ArticleCardSkeleton() {
+  return (
+    <div className="relative h-full p-4 lg:p-6 flex flex-col border-r border-b border-dashed border-border">
+      <CardCorners />
+      <div className="flex items-center justify-between mb-3 md:mb-6">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-5 h-5 rounded-[4px]" />
+          <Skeleton className="h-3.5 w-24" />
+        </div>
+        <Skeleton className="h-3.5 w-16" />
+      </div>
+
+      <div className="flex-1 mb-4 md:mb-8">
+        <Skeleton className="h-5 w-full mb-2" />
+        <Skeleton className="h-5 w-3/4 mb-3" />
+        <Skeleton className="h-4 w-full mb-1.5" />
+        <Skeleton className="h-4 w-full mb-1.5" />
+        <Skeleton className="h-4 w-2/3" />
+      </div>
+
+      <div className="mt-auto flex gap-2">
+        <Skeleton className="h-6 w-14 rounded-full" />
+        <Skeleton className="h-6 w-18 rounded-full" />
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export function Search() {
   }
 
   return (
-    <div className="relative w-9 sm:w-[200px] md:w-[300px] h-9" ref={containerRef}>
+    <div className="relative w-9 z-60 sm:w-[200px] md:w-[300px] h-9" ref={containerRef}>
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -86,7 +86,7 @@ export function Search() {
             transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
             type="button"
             onClick={() => setOpen(true)}
-            className="absolute inset-0 flex items-center justify-center sm:justify-start w-full px-2 sm:px-3 py-1.5 text-sm rounded-md bg-background border-0 sm:border sm:border-border transition-colors cursor-text text-muted-foreground hover:text-foreground z-10"
+            className="absolute inset-0 flex items-center justify-center sm:justify-start w-full px-2 sm:px-3 py-1.5 text-sm rounded-md bg-background border-0 sm:border sm:border-border transition-colors cursor-text text-muted-foreground hover:text-foreground z-60"
           >
             <motion.div
               layoutId="search-icon"

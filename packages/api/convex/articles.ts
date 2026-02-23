@@ -362,6 +362,7 @@ export const searchUserArticles = query({
     const result = [];
     for (const ua of userArticles) {
       if (result.length >= 10) break;
+      if (ua.isArchived) continue;
 
       const article = await ctx.db.get(ua.articleId);
       if (!article) continue;
