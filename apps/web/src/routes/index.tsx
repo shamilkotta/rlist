@@ -23,7 +23,7 @@ import { useConvexAction } from '@convex-dev/react-query';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Link, createFileRoute, useRouteContext } from '@tanstack/react-router';
+import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
 import { ConvexError } from 'convex/values';
 import {
   ArrowUpRight,
@@ -39,24 +39,44 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ArticleCard } from '../components/ArticleCard';
-import { ArticleListItem } from '../components/ArticleListItem';
+import { ArticleCard, ArticleCardSkeleton } from '../components/ArticleCard';
+import { ArticleListItem, ArticleListItemSkeleton } from '../components/ArticleListItem';
 import { PasteInput } from '../components/PasteInput';
 import { Search } from '../components/Search';
 
+type ViewMode = 'grid' | 'list';
+type TabFilter = 'unread' | 'all' | 'archive';
+
+const validTabs: TabFilter[] = ['unread', 'all', 'archive'];
+const skeletonKeys = ['s1', 's2', 's3', 's4', 's5', 's6'];
+
+const tabs: { label: string; value: TabFilter }[] = [
+  { label: 'Unread', value: 'unread' },
+  { label: 'All Items', value: 'all' },
+  { label: 'Archive', value: 'archive' },
+];
+
 export const Route = createFileRoute('/')({
   component: Home,
+  validateSearch: (search: Record<string, unknown>): { tab?: TabFilter } => {
+    const tab = search.tab as string;
+    if (validTabs.includes(tab as TabFilter)) {
+      return { tab: tab as TabFilter };
+    }
+    return {};
+  },
 });
-
-type ViewMode = 'grid' | 'list';
 
 function Home() {
   const { toggleSidebar } = useSidebar();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const { tab } = Route.useSearch();
+  const activeTab = tab ?? 'unread';
+  const navigate = useNavigate();
   const { isAuthenticated } = useRouteContext({ from: Route.id });
   const { data: session, isPending } = authClient.useSession();
   const { data: userArticles, isLoading: isLoadingArticles } = useQuery({
-    ...convexQuery(api.articles.listUserArticles),
+    ...convexQuery(api.articles.listUserArticles, { filter: activeTab }),
     enabled: isAuthenticated,
   });
 
@@ -94,7 +114,7 @@ function Home() {
   const articles = mapArticlesForDisplay(userArticles);
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-muted">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-muted">
       {/* Fixed Logo - stays in place while scrolling */}
       <a
         href="/"
@@ -242,17 +262,18 @@ function Home() {
           <div className="flex items-center justify-between gap-4 overflow-x-auto no-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6">
             {/* Tabs with scroll-driven animation for margin */}
             <div className="flex items-center gap-4 sm:gap-8 filter-tabs">
-              {['All Items', 'Unread', 'Archive'].map((tab, i) => (
+              {tabs.map((tab) => (
                 <button
-                  key={tab}
+                  key={tab.value}
                   type="button"
+                  onClick={() => navigate({ to: '/', search: { tab: tab.value } })}
                   className={`py-4 text-nowrap text-[13px] sm:text-[14px] font-medium transition-colors border-b-2 ${
-                    i === 0
+                    activeTab === tab.value
                       ? 'text-foreground border-foreground'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
                   }`}
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               ))}
               <button
@@ -282,7 +303,7 @@ function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="pb-20">
+      <main className="flex-1 pb-20">
         {/* Add URL Section */}
         <section className="max-w-[1400px] mx-auto px-3 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -301,12 +322,28 @@ function Home() {
         {/* Articles Grid/List View */}
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
           {isLoadingArticles ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">
-              Loading articles...
-            </div>
+            <>
+              <div
+                className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
+              >
+                {skeletonKeys.map((key) => (
+                  <ArticleCardSkeleton key={key} />
+                ))}
+              </div>
+              <div
+                className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
+              >
+                {skeletonKeys.map((key) => (
+                  <ArticleListItemSkeleton key={key} />
+                ))}
+              </div>
+            </>
           ) : articles.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground text-sm">
-              No articles yet. Paste a URL above to add your first article.
+              {activeTab === 'unread' && "No unread articles. You're all caught up!"}
+              {activeTab === 'all' &&
+                'No articles yet. Paste a URL above to add your first article.'}
+              {activeTab === 'archive' && 'No archived articles.'}
             </div>
           ) : (
             <>

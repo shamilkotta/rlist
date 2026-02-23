@@ -392,7 +392,9 @@ export const searchUserArticles = query({
 });
 
 export const listUserArticles = query({
-  args: {},
+  args: {
+    filter: v.optional(v.union(v.literal('unread'), v.literal('all'), v.literal('archive'))),
+  },
   returns: v.array(
     v.object({
       articleId: v.id('articles'),
@@ -407,7 +409,7 @@ export const listUserArticles = query({
       _creationTime: v.number(),
     })
   ),
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) {
       throw new ConvexError({
@@ -416,6 +418,7 @@ export const listUserArticles = query({
       });
     }
 
+    const filter = args.filter ?? 'unread';
     const userId = user._id.toString();
     const userArticles = await ctx.db
       .query('userArticles')
@@ -425,6 +428,10 @@ export const listUserArticles = query({
 
     const result = [];
     for (const ua of userArticles) {
+      if (filter === 'unread' && (ua.isRead || ua.isArchived)) continue;
+      if (filter === 'all' && ua.isArchived) continue;
+      if (filter === 'archive' && !ua.isArchived) continue;
+
       const article = await ctx.db.get(ua.articleId);
       if (article) {
         result.push({
