@@ -10,6 +10,8 @@ export type ArticleForDisplay = {
   date: string;
   tags: string[];
   faviconUrl: string;
+  isRead: boolean;
+  isArchived: boolean;
 };
 
 type RawArticle = {
@@ -20,6 +22,8 @@ type RawArticle = {
   domain: string;
   faviconUrl: string;
   tags: string[];
+  isRead?: boolean;
+  isArchived?: boolean;
   _creationTime: number;
 };
 
@@ -35,5 +39,7 @@ export function mapArticlesForDisplay(articles: RawArticle[] | undefined): Artic
     date: formatRelativeDate(a._creationTime),
     tags: a.tags,
     faviconUrl: a.faviconUrl,
+    isRead: a.isRead ?? false,
+    isArchived: a.isArchived ?? false,
   }));
 }

@@ -333,6 +333,8 @@ export const searchUserArticles = query({
       domain: v.string(),
       faviconUrl: v.string(),
       tags: v.array(v.string()),
+      isRead: v.optional(v.boolean()),
+      isArchived: v.optional(v.boolean()),
       _creationTime: v.number(),
     })
   ),
@@ -379,6 +381,8 @@ export const searchUserArticles = query({
         domain: article.domain,
         faviconUrl: article.faviconUrl,
         tags: ua.tags,
+        isRead: ua.isRead,
+        isArchived: ua.isArchived,
         _creationTime: ua._creationTime,
       });
     }
@@ -398,6 +402,8 @@ export const listUserArticles = query({
       domain: v.string(),
       faviconUrl: v.string(),
       tags: v.array(v.string()),
+      isRead: v.optional(v.boolean()),
+      isArchived: v.optional(v.boolean()),
       _creationTime: v.number(),
     })
   ),
@@ -429,11 +435,109 @@ export const listUserArticles = query({
           domain: article.domain,
           faviconUrl: article.faviconUrl,
           tags: ua.tags,
+          isRead: ua.isRead,
+          isArchived: ua.isArchived,
           _creationTime: ua._creationTime,
         });
       }
     }
 
     return result;
+  },
+});
+
+export const toggleReadStatus = mutation({
+  args: { articleId: v.id('articles') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
+
+    const userId = user._id.toString();
+    const userArticle = await ctx.db
+      .query('userArticles')
+      .withIndex('by_userId_and_articleId', (q) =>
+        q.eq('userId', userId).eq('articleId', args.articleId)
+      )
+      .unique();
+
+    if (!userArticle) {
+      throw new ConvexError({
+        code: 'ARTICLE_NOT_FOUND',
+        message: 'Article not found',
+      });
+    }
+
+    await ctx.db.patch(userArticle._id, { isRead: !userArticle.isRead });
+    return null;
+  },
+});
+
+export const toggleArchiveStatus = mutation({
+  args: { articleId: v.id('articles') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
+
+    const userId = user._id.toString();
+    const userArticle = await ctx.db
+      .query('userArticles')
+      .withIndex('by_userId_and_articleId', (q) =>
+        q.eq('userId', userId).eq('articleId', args.articleId)
+      )
+      .unique();
+
+    if (!userArticle) {
+      throw new ConvexError({
+        code: 'ARTICLE_NOT_FOUND',
+        message: 'Article not found',
+      });
+    }
+
+    await ctx.db.patch(userArticle._id, { isArchived: !userArticle.isArchived });
+    return null;
+  },
+});
+
+export const deleteArticle = mutation({
+  args: { articleId: v.id('articles') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
+
+    const userId = user._id.toString();
+    const userArticle = await ctx.db
+      .query('userArticles')
+      .withIndex('by_userId_and_articleId', (q) =>
+        q.eq('userId', userId).eq('articleId', args.articleId)
+      )
+      .unique();
+
+    if (!userArticle) {
+      throw new ConvexError({
+        code: 'ARTICLE_NOT_FOUND',
+        message: 'Article not found',
+      });
+    }
+
+    await ctx.db.delete(userArticle._id);
+    return null;
   },
 });

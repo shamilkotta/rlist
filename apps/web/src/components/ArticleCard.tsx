@@ -1,3 +1,4 @@
+import { ArticleActions } from '@/components/ArticleActions';
 import { TagEditor } from '@/components/TagEditor';
 import { cn } from '@/lib/utils';
 import type { Id } from '@rlist/api/convex/_generated/dataModel';
@@ -11,6 +12,8 @@ interface ArticleCardProps {
   tags: string[];
   imageUrl?: string;
   faviconUrl?: string;
+  isRead: boolean;
+  isArchived: boolean;
 }
 
 export function ArticleCard({
@@ -21,6 +24,8 @@ export function ArticleCard({
   date,
   tags,
   faviconUrl,
+  isRead,
+  isArchived,
 }: ArticleCardProps) {
   return (
     <div className="relative group h-full p-4 lg:p-6 cursor-pointer flex flex-col border-r border-b border-dashed border-border">
@@ -58,7 +63,10 @@ export function ArticleCard({
             {domain}
           </span>
         </div>
-        <span className="text-[13px] text-muted-foreground font-medium">{date}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-[13px] text-muted-foreground font-medium">{date}</span>
+          <ArticleActions articleId={id} isRead={isRead} isArchived={isArchived} />
+        </div>
       </div>
 
       <div className="flex-1 mb-4 md:mb-8">

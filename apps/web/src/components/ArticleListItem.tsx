@@ -1,3 +1,4 @@
+import { ArticleActions } from '@/components/ArticleActions';
 import { TagEditor } from '@/components/TagEditor';
 import { cn } from '@/lib/utils';
 import type { Id } from '@rlist/api/convex/_generated/dataModel';
@@ -11,6 +12,8 @@ interface ArticleListItemProps {
   tags: string[];
   imageUrl?: string;
   faviconUrl?: string;
+  isRead: boolean;
+  isArchived: boolean;
 }
 
 export function ArticleListItem({
@@ -21,6 +24,8 @@ export function ArticleListItem({
   date,
   tags,
   faviconUrl,
+  isRead,
+  isArchived,
 }: ArticleListItemProps) {
   return (
     <div className="relative group py-5 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border">
@@ -65,6 +70,7 @@ export function ArticleListItem({
           <span className="text-[13px] text-muted-foreground font-medium whitespace-nowrap">
             {date}
           </span>
+          <ArticleActions articleId={id} isRead={isRead} isArchived={isArchived} />
         </div>
       </div>
 

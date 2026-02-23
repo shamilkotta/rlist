@@ -14,6 +14,8 @@ export default defineSchema({
     userId: v.string(),
     articleId: v.id('articles'),
     tags: v.array(v.string()),
+    isRead: v.optional(v.boolean()),
+    isArchived: v.optional(v.boolean()),
   })
     .index('by_userId', ['userId'])
     .index('by_userId_and_articleId', ['userId', 'articleId']),
