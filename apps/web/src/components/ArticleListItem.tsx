@@ -1,7 +1,9 @@
-import { Badge } from '@/components/ui/badge';
+import { TagEditor } from '@/components/TagEditor';
 import { cn } from '@/lib/utils';
+import type { Id } from '@rlist/api/convex/_generated/dataModel';
 
 interface ArticleListItemProps {
+  id: Id<'articles'>;
   title: string;
   description: string;
   domain: string;
@@ -12,6 +14,7 @@ interface ArticleListItemProps {
 }
 
 export function ArticleListItem({
+  id,
   title,
   description,
   domain,
@@ -58,17 +61,7 @@ export function ArticleListItem({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            {tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-sm badge hover:bg-primary hover:text-primary-foreground"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
+          <TagEditor articleId={id} initialTags={tags} />
           <span className="text-[13px] text-muted-foreground font-medium whitespace-nowrap">
             {date}
           </span>

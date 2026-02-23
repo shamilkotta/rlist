@@ -1,7 +1,9 @@
-import { Badge } from '@/components/ui/badge';
+import { TagEditor } from '@/components/TagEditor';
 import { cn } from '@/lib/utils';
+import type { Id } from '@rlist/api/convex/_generated/dataModel';
 
 interface ArticleCardProps {
+  id: Id<'articles'>;
   title: string;
   description: string;
   domain: string;
@@ -12,6 +14,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({
+  id,
   title,
   description,
   domain,
@@ -77,16 +80,8 @@ export function ArticleCard({
         </p>
       </div>
 
-      <div className="mt-auto flex items-center gap-2 flex-wrap">
-        {tags.map((tag) => (
-          <Badge
-            key={tag}
-            variant="secondary"
-            className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-sm badge hover:bg-primary hover:text-primary-foreground"
-          >
-            {tag}
-          </Badge>
-        ))}
+      <div className="mt-auto">
+        <TagEditor articleId={id} initialTags={tags} />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { ConvexError, v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
-import { action, internalMutation, internalQuery, query } from './_generated/server';
+import { action, internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { authComponent } from './auth';
 
 function extractMetaContent(html: string, property: string): string | null {
@@ -270,6 +270,54 @@ export const addArticle = action({
       tags,
       metadata,
     });
+  },
+});
+
+export const updateArticleTags = mutation({
+  args: {
+    articleId: v.id('articles'),
+    tags: v.array(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
+
+    const tags = [...new Set(args.tags.map((t) => t.trim().toUpperCase()).filter(Boolean))].slice(
+      0,
+      2
+    );
+    for (const tag of tags) {
+      if (tag.length > 15) {
+        throw new ConvexError({
+          code: 'TAG_TOO_LONG',
+          message: 'Each tag must be at most 15 characters',
+        });
+      }
+    }
+
+    const userId = user._id.toString();
+    const userArticle = await ctx.db
+      .query('userArticles')
+      .withIndex('by_userId_and_articleId', (q) =>
+        q.eq('userId', userId).eq('articleId', args.articleId)
+      )
+      .unique();
+
+    if (!userArticle) {
+      throw new ConvexError({
+        code: 'ARTICLE_NOT_FOUND',
+        message: 'Article not found',
+      });
+    }
+
+    await ctx.db.patch(userArticle._id, { tags });
+    return null;
   },
 });
 
