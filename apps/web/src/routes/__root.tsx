@@ -116,7 +116,7 @@ function RootDocument({
         <HeadContent />
       </head>
       <body className="m-0 antialiased">
-        <ThemeProvider defaultTheme="system" storageKey="rlist-theme">
+        <ThemeProvider defaultTheme="system" storageKey="rlist:user-theme">
           <Toaster />
           <SidebarProvider defaultOpen={false}>
             {!showLandingLayout && <AppSidebar />}

@@ -19,8 +19,13 @@ export function Search() {
 
   const hasSearchQuery = debouncedQuery.trim().length > 0;
 
-  const { data: recentArticles } = useQuery({
-    ...convexQuery(api.articles.listUserArticles),
+  const { data: recentArticlesPage } = useQuery({
+    ...convexQuery(api.articles.listUserArticles, {
+      paginationOpts: {
+        numItems: 10,
+        cursor: null,
+      },
+    }),
     enabled: isAuthenticated && open,
   });
 
@@ -30,8 +35,8 @@ export function Search() {
   });
 
   const defaultArticles = useMemo(
-    () => mapArticlesForDisplay(recentArticles).slice(0, 10),
-    [recentArticles]
+    () => mapArticlesForDisplay(recentArticlesPage?.page),
+    [recentArticlesPage]
   );
   const searchArticles = useMemo(() => mapArticlesForDisplay(searchResults), [searchResults]);
 

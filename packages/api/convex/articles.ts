@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
@@ -193,6 +194,8 @@ export const addArticleInternal = internalMutation({
       userId: args.userId,
       articleId,
       tags: args.tags,
+      isRead: false,
+      isArchived: false,
     });
 
     return { articleId, userArticleId };
@@ -392,24 +395,29 @@ export const searchUserArticles = query({
   },
 });
 
+const userArticleListItemValidator = v.object({
+  articleId: v.id('articles'),
+  url: v.string(),
+  title: v.union(v.string(), v.null()),
+  description: v.union(v.string(), v.null()),
+  domain: v.string(),
+  faviconUrl: v.string(),
+  tags: v.array(v.string()),
+  isRead: v.optional(v.boolean()),
+  isArchived: v.optional(v.boolean()),
+  _creationTime: v.number(),
+});
+
 export const listUserArticles = query({
   args: {
+    paginationOpts: paginationOptsValidator,
     filter: v.optional(v.union(v.literal('unread'), v.literal('all'), v.literal('archive'))),
   },
-  returns: v.array(
-    v.object({
-      articleId: v.id('articles'),
-      url: v.string(),
-      title: v.union(v.string(), v.null()),
-      description: v.union(v.string(), v.null()),
-      domain: v.string(),
-      faviconUrl: v.string(),
-      tags: v.array(v.string()),
-      isRead: v.optional(v.boolean()),
-      isArchived: v.optional(v.boolean()),
-      _creationTime: v.number(),
-    })
-  ),
+  returns: v.object({
+    page: v.array(userArticleListItemValidator),
+    isDone: v.boolean(),
+    continueCursor: v.string(),
+  }),
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) {
@@ -421,21 +429,36 @@ export const listUserArticles = query({
 
     const filter = args.filter ?? 'unread';
     const userId = user._id.toString();
-    const userArticles = await ctx.db
-      .query('userArticles')
-      .withIndex('by_userId', (q) => q.eq('userId', userId))
-      .order('desc')
-      .collect();
+    const userArticles =
+      filter === 'archive'
+        ? await ctx.db
+            .query('userArticles')
+            .withIndex('by_userId_and_isArchived', (q) =>
+              q.eq('userId', userId).eq('isArchived', true)
+            )
+            .order('desc')
+            .paginate(args.paginationOpts)
+        : filter === 'all'
+          ? await ctx.db
+              .query('userArticles')
+              .withIndex('by_userId_and_isArchived', (q) =>
+                q.eq('userId', userId).eq('isArchived', false)
+              )
+              .order('desc')
+              .paginate(args.paginationOpts)
+          : await ctx.db
+              .query('userArticles')
+              .withIndex('by_userId_and_isArchived_and_isRead', (q) =>
+                q.eq('userId', userId).eq('isArchived', false).eq('isRead', false)
+              )
+              .order('desc')
+              .paginate(args.paginationOpts);
 
-    const result = [];
-    for (const ua of userArticles) {
-      if (filter === 'unread' && (ua.isRead || ua.isArchived)) continue;
-      if (filter === 'all' && ua.isArchived) continue;
-      if (filter === 'archive' && !ua.isArchived) continue;
-
+    const page = [];
+    for (const ua of userArticles.page) {
       const article = await ctx.db.get(ua.articleId);
       if (article) {
-        result.push({
+        page.push({
           articleId: article._id,
           url: article.url,
           title: article.title,
@@ -450,7 +473,11 @@ export const listUserArticles = query({
       }
     }
 
-    return result;
+    return {
+      page,
+      isDone: userArticles.isDone,
+      continueCursor: userArticles.continueCursor,
+    };
   },
 });
 

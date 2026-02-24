@@ -18,5 +18,7 @@ export default defineSchema({
     isArchived: v.optional(v.boolean()),
   })
     .index('by_userId', ['userId'])
+    .index('by_userId_and_isArchived', ['userId', 'isArchived'])
+    .index('by_userId_and_isArchived_and_isRead', ['userId', 'isArchived', 'isRead'])
     .index('by_userId_and_articleId', ['userId', 'articleId']),
 });
