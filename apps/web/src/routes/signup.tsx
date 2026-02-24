@@ -7,6 +7,9 @@ import { useState } from 'react';
 
 export const Route = createFileRoute('/signup')({
   component: SignupPage,
+  head: () => ({
+    meta: [{ title: 'Create an account | rlist' }],
+  }),
 });
 
 function SignupPage() {

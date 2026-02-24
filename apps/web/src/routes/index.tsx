@@ -67,7 +67,7 @@ const VIEW_MODE_STORAGE_KEY = 'rlist:view-mode';
 const ARTICLE_PAGE_SIZE = 24;
 const DEFAULT_VIEW_MODE: ViewMode = 'grid';
 
-const tabs: { label: string; value: TabFilter }[] = [
+const TABS: { label: string; value: TabFilter }[] = [
   { label: 'Unread', value: 'unread' },
   { label: 'All Items', value: 'all' },
   { label: 'Archive', value: 'archive' },
@@ -82,6 +82,20 @@ export const Route = createFileRoute('/')({
     }
     return {};
   },
+  loader: (ctx) => {
+    return {
+      isAuthenticated: ctx.context.isAuthenticated,
+    };
+  },
+  head: (ctx) => ({
+    meta: [
+      {
+        title: ctx.loaderData?.isAuthenticated
+          ? 'Your articles | rlist'
+          : 'rlist: Your digital library, simplified',
+      },
+    ],
+  }),
 });
 
 function HomeRoute() {
@@ -334,7 +348,7 @@ function Home({ activeTab }: { activeTab: TabFilter }) {
           <div className="flex items-center justify-between gap-4 overflow-x-auto no-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6">
             {/* Tabs with scroll-driven animation for margin */}
             <div className="flex items-center gap-4 sm:gap-8 filter-tabs">
-              {tabs.map((tab) => (
+              {TABS.map((tab) => (
                 <button
                   key={tab.value}
                   type="button"

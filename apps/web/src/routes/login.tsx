@@ -7,6 +7,9 @@ import { useState } from 'react';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
+  head: () => ({
+    meta: [{ title: 'Sign in to your account | rlist' }],
+  }),
 });
 
 function LoginPage() {

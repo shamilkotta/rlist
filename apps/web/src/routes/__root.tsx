@@ -40,7 +40,7 @@ export const Route = createRootRouteWithContext<{
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Reader - Your digital library, simplified',
+        title: 'rlist: Your digital library, simplified',
       },
     ],
     links: [
