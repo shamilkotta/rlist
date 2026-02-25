@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
+import { usePaginatedQuery } from '@/hooks/use-paginated-articles';
 import { mapArticlesForDisplay } from '@/lib/article';
 import { authClient } from '@/lib/auth-client';
 import {
@@ -23,7 +24,6 @@ import { useConvexAction } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useMutation } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
-import { usePaginatedQuery } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import {
   ArrowUpRight,
@@ -51,7 +51,7 @@ type TabFilter = 'unread' | 'all' | 'archive';
 const VALID_TABS: TabFilter[] = ['unread', 'all', 'archive'];
 const SKELETON_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'];
 const VIEW_MODE_STORAGE_KEY = 'rlist:view-mode';
-const ARTICLE_PAGE_SIZE = 1;
+const ARTICLE_PAGE_SIZE = 24;
 const DEFAULT_VIEW_MODE: ViewMode = 'grid';
 
 const TABS: { label: string; value: TabFilter }[] = [
@@ -356,11 +356,7 @@ function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode:
     results: allUserArticles,
     status: paginationStatus,
     loadMore,
-  } = usePaginatedQuery(
-    api.articles.listUserArticles,
-    { filter: activeTab },
-    { initialNumItems: ARTICLE_PAGE_SIZE }
-  );
+  } = usePaginatedQuery({ filter: activeTab, pageSize: ARTICLE_PAGE_SIZE });
 
   const addArticleMutationFn = useConvexAction(api.articles.addArticle);
   const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
@@ -428,7 +424,7 @@ function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode:
               <ArticleListItem key={article.id} {...article} />
             ))}
           </div>
-          {canLoadMore && (
+          {(canLoadMore || isLoadingMore) && (
             <div className="flex justify-center py-12">
               <Button
                 variant="outline"
