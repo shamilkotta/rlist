@@ -20,11 +20,10 @@ import {
   setPendingArticleUrl,
 } from '@/lib/pending-article';
 import { useConvexAction } from '@convex-dev/react-query';
-import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import type { Id } from '@rlist/api/convex/_generated/dataModel';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
+import { usePaginatedQuery } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import {
   ArrowUpRight,
@@ -48,23 +47,11 @@ import { Search } from '../components/Search';
 
 type ViewMode = 'grid' | 'list';
 type TabFilter = 'unread' | 'all' | 'archive';
-type UserArticleListItem = {
-  articleId: Id<'articles'>;
-  url: string;
-  title: string | null;
-  description: string | null;
-  domain: string;
-  faviconUrl: string;
-  tags: string[];
-  isRead?: boolean;
-  isArchived?: boolean;
-  _creationTime: number;
-};
 
 const VALID_TABS: TabFilter[] = ['unread', 'all', 'archive'];
 const SKELETON_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'];
 const VIEW_MODE_STORAGE_KEY = 'rlist:view-mode';
-const ARTICLE_PAGE_SIZE = 24;
+const ARTICLE_PAGE_SIZE = 1;
 const DEFAULT_VIEW_MODE: ViewMode = 'grid';
 
 const TABS: { label: string; value: TabFilter }[] = [
@@ -82,7 +69,8 @@ export const Route = createFileRoute('/')({
     }
     return {};
   },
-  loader: (ctx) => {
+  loaderDeps: ({ search }) => ({ tab: search.tab ?? 'unread' }),
+  loader: async (ctx) => {
     return {
       isAuthenticated: ctx.context.isAuthenticated,
     };
@@ -101,11 +89,10 @@ export const Route = createFileRoute('/')({
 function HomeRoute() {
   const { tab } = Route.useSearch();
   const activeTab = tab ?? 'unread';
-  return <Home key={activeTab} activeTab={activeTab} />;
-}
-
-function Home({ activeTab }: { activeTab: TabFilter }) {
+  const { isAuthenticated } = useRouteContext({ from: Route.id });
+  const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
+  const { data: session, isPending } = authClient.useSession();
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') {
       return DEFAULT_VIEW_MODE;
@@ -114,90 +101,14 @@ function Home({ activeTab }: { activeTab: TabFilter }) {
     const savedViewMode = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
     return savedViewMode === 'grid' || savedViewMode === 'list' ? savedViewMode : DEFAULT_VIEW_MODE;
   });
-  const [paginationCursor, setPaginationCursor] = useState<string | null>(null);
-  const [allUserArticles, setAllUserArticles] = useState<UserArticleListItem[]>([]);
-  const navigate = useNavigate();
-  const { isAuthenticated } = useRouteContext({ from: Route.id });
-  const { data: session, isPending } = authClient.useSession();
-  const {
-    data: userArticlesPage,
-    isLoading: isLoadingArticles,
-    isFetching: isFetchingArticles,
-  } = useQuery({
-    ...convexQuery(api.articles.listUserArticles, {
-      filter: activeTab,
-      paginationOpts: {
-        numItems: ARTICLE_PAGE_SIZE,
-        cursor: paginationCursor,
-      },
-    }),
-    enabled: isAuthenticated,
-  });
-
-  const addArticleMutationFn = useConvexAction(api.articles.addArticle);
-  const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
-
-  useEffect(() => {
-    if (!userArticlesPage) return;
-
-    setAllUserArticles((prevArticles) => {
-      if (paginationCursor === null) {
-        return userArticlesPage.page as UserArticleListItem[];
-      }
-
-      const existingIds = new Set(prevArticles.map((article) => article.articleId));
-      const nextArticles = (userArticlesPage.page as UserArticleListItem[]).filter(
-        (article) => !existingIds.has(article.articleId)
-      );
-      return [...prevArticles, ...nextArticles];
-    });
-  }, [userArticlesPage, paginationCursor]);
-
-  const isInitialArticlesLoading = isLoadingArticles && allUserArticles.length === 0;
-  const canLoadMore = Boolean(!userArticlesPage?.isDone);
-  const isLoadingMore = isFetchingArticles && paginationCursor !== null;
-
-  function handleLoadMore() {
-    if (!userArticlesPage || userArticlesPage.isDone || isFetchingArticles) {
-      return;
-    }
-
-    setPaginationCursor(userArticlesPage.continueCursor);
-  }
 
   useEffect(() => {
     window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
   }, [viewMode]);
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    const pendingUrl = getPendingArticleUrl();
-    if (!pendingUrl) return;
-    clearPendingArticleUrl();
-    addArticleMutation.mutate(
-      { url: pendingUrl, tags: [] },
-      {
-        onSuccess: () => toast.success('Article added'),
-        onError: (err) => {
-          if (
-            err instanceof ConvexError &&
-            'code' in err.data &&
-            err.data.code === 'ALREADY_SAVED_ARTICLE'
-          ) {
-            return;
-          }
-          toast.error(err instanceof ConvexError ? err.data.message : 'Failed to add article');
-          setPendingArticleUrl(pendingUrl);
-        },
-      }
-    );
-  }, [isAuthenticated, addArticleMutation]);
-
   if (!isAuthenticated) {
     return <LandingPage />;
   }
-
-  const articles = mapArticlesForDisplay(allUserArticles);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-muted">
@@ -406,63 +317,7 @@ function Home({ activeTab }: { activeTab: TabFilter }) {
         </section>
 
         {/* Articles Grid/List View */}
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
-          {isInitialArticlesLoading ? (
-            <>
-              <div
-                className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
-              >
-                {SKELETON_KEYS.map((key) => (
-                  <ArticleCardSkeleton key={key} />
-                ))}
-              </div>
-              <div
-                className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
-              >
-                {SKELETON_KEYS.map((key) => (
-                  <ArticleListItemSkeleton key={key} />
-                ))}
-              </div>
-            </>
-          ) : articles.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">
-              {activeTab === 'unread' && "No unread articles. You're all caught up!"}
-              {activeTab === 'all' &&
-                'No articles yet. Paste a URL above to add your first article.'}
-              {activeTab === 'archive' && 'No archived articles.'}
-            </div>
-          ) : (
-            <>
-              <div
-                className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
-              >
-                {articles.map((article) => (
-                  <ArticleCard key={article.id} {...article} />
-                ))}
-              </div>
-              <div
-                className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
-              >
-                {articles.map((article) => (
-                  <ArticleListItem key={article.id} {...article} />
-                ))}
-              </div>
-              {canLoadMore && (
-                <div className="flex justify-center py-12">
-                  <Button
-                    variant="outline"
-                    onClick={handleLoadMore}
-                    disabled={isLoadingMore}
-                    className="h-10 w-full max-w-2xl rounded-full border border-dashed border-border/70 bg-background px-8 text-base font-medium text-foreground hover:bg-muted/30 transition-colors disabled:opacity-80"
-                  >
-                    {isLoadingMore && <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />}
-                    Load more
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+        <ArticlesList activeTab={activeTab} viewMode={viewMode} />
       </main>
 
       {/* Footer */}
@@ -492,6 +347,123 @@ function Home({ activeTab }: { activeTab: TabFilter }) {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode: ViewMode }) {
+  const {
+    results: allUserArticles,
+    status: paginationStatus,
+    loadMore,
+  } = usePaginatedQuery(
+    api.articles.listUserArticles,
+    { filter: activeTab },
+    { initialNumItems: ARTICLE_PAGE_SIZE }
+  );
+
+  const addArticleMutationFn = useConvexAction(api.articles.addArticle);
+  const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
+
+  const isInitialArticlesLoading = paginationStatus === 'LoadingFirstPage';
+  const canLoadMore = paginationStatus === 'CanLoadMore';
+  const isLoadingMore = paginationStatus === 'LoadingMore';
+
+  function handleLoadMore() {
+    if (!canLoadMore) {
+      return;
+    }
+
+    loadMore(ARTICLE_PAGE_SIZE);
+  }
+
+  useEffect(() => {
+    const pendingUrl = getPendingArticleUrl();
+    if (!pendingUrl) return;
+    clearPendingArticleUrl();
+    addArticleMutation.mutate(
+      { url: pendingUrl, tags: [] },
+      {
+        onSuccess: () => toast.success('Article added'),
+        onError: (err) => {
+          if (
+            err instanceof ConvexError &&
+            'code' in err.data &&
+            err.data.code === 'ALREADY_SAVED_ARTICLE'
+          ) {
+            return;
+          }
+          toast.error(err instanceof ConvexError ? err.data.message : 'Failed to add article');
+          setPendingArticleUrl(pendingUrl);
+        },
+      }
+    );
+  }, [addArticleMutation]);
+
+  const articles = mapArticlesForDisplay(allUserArticles);
+
+  return (
+    <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
+      {isInitialArticlesLoading ? (
+        <ArticlesListFallback viewMode={viewMode} />
+      ) : articles.length === 0 ? (
+        <div className="py-12 text-center text-muted-foreground text-sm">
+          {activeTab === 'unread' && "No unread articles. You're all caught up!"}
+          {activeTab === 'all' && 'No articles yet. Paste a URL above to add your first article.'}
+          {activeTab === 'archive' && 'No archived articles.'}
+        </div>
+      ) : (
+        <>
+          <div
+            className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
+          >
+            {articles.map((article) => (
+              <ArticleCard key={article.id} {...article} />
+            ))}
+          </div>
+          <div
+            className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
+          >
+            {articles.map((article) => (
+              <ArticleListItem key={article.id} {...article} />
+            ))}
+          </div>
+          {canLoadMore && (
+            <div className="flex justify-center py-12">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="h-10 w-full max-w-2xl rounded-full border border-dashed border-border/70 bg-background px-8 text-base font-medium text-foreground hover:bg-muted/30 transition-colors disabled:opacity-80"
+              >
+                {isLoadingMore && <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />}
+                Load more
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ArticlesListFallback({ viewMode }: { viewMode: ViewMode }) {
+  return (
+    <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
+      <div
+        className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
+      >
+        {SKELETON_KEYS.map((key) => (
+          <ArticleCardSkeleton key={key} />
+        ))}
+      </div>
+      <div
+        className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
+      >
+        {SKELETON_KEYS.map((key) => (
+          <ArticleListItemSkeleton key={key} />
+        ))}
+      </div>
     </div>
   );
 }
