@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "build:web:cf": "pnpm --filter rlist-web exec env NITRO_PRESET=cloudflare_module pnpm build",
-    "deploy:web:cf": "pnpm build:web:cf && pnpm dlx wrangler deploy --config wrangler.json",
+    "build:web:cf": "pnpm --filter @rlist/api run codegen && pnpm --filter rlist-web exec env NITRO_PRESET=cloudflare_module pnpm build",
+    "deploy:web:cf": " pnpm dlx wrangler deploy --config wrangler.json",
     "preview:web:cf": "pnpm build:web:cf && pnpm dlx wrangler dev --config wrangler.json",
     "lint": "turbo run lint",
     "format": "biome format --write .",
