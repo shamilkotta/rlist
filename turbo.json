@@ -1,7 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.local"],
-  "globalEnv": ["CONVEX_DEPLOYMENT", "CONVEX_URL", "CONVEX_DEPLOY_KEY"],
+  "globalEnv": [
+    "CONVEX_DEPLOYMENT",
+    "CONVEX_URL",
+    "CONVEX_DEPLOY_KEY",
+    "VITE_CONVEX_URL",
+    "VITE_CONVEX_SITE_URL",
+    "VITE_SITE_URL"
+  ],
   "tasks": {
     "dev": {
       "cache": false,
