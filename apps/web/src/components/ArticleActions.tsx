@@ -107,7 +107,7 @@ export function ArticleActions({ articleId, isRead, isArchived }: ArticleActions
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteArticleMutation.mutate({ articleId })}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>

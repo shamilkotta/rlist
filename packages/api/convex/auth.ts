@@ -13,10 +13,16 @@ const siteUrl = process.env.SITE_URL!;
 // as well as helper methods for general use.
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
+const trustedOrigins =
+  process.env.TRUSTED_ORIGINS?.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? [];
+
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
   return betterAuth({
     baseURL: siteUrl,
     database: authComponent.adapter(ctx),
+    trustedOrigins,
     // Configure simple, non-verified email/password to get started
     emailAndPassword: {
       enabled: true,
