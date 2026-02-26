@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "rlist - Save URLs",
+  "version": "1.0.0",
+  "description": "Quickly save pages and links to your rlist collection.",
+  "permissions": ["storage", "activeTab", "tabs", "commands"],
+  "host_permissions": [
+    "https://flexible-vole-955.convex.cloud/*",
+    "https://flexible-vole-955.convex.site/*"
+  ],
+  "action": {
+    "default_title": "rlist",
+    "default_popup": "src/popup/index.html"
+  },
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "commands": {
+    "save-current-page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Open rlist popup with current page URL"
+    }
+  }
+}

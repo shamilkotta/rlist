@@ -1,0 +1,41 @@
+{
+  "name": "rlist-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint ./src",
+    "format": "biome format --write ./src"
+  },
+  "dependencies": {
+    "@convex-dev/better-auth": "^0.10.10",
+    "@convex-dev/react-query": "^0.1.0",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@rlist/api": "workspace:*",
+    "@tanstack/react-query": "^5.90.20",
+    "better-auth": "^1.4.17",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "convex": "^1.17.4",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@crxjs/vite-plugin": "^2.0.1",
+    "@tailwindcss/vite": "^4.0.6",
+    "@types/chrome": "^0.0.287",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.0.6",
+    "typescript": "^5.7.2",
+    "vite": "^7.1.7",
+    "vite-tsconfig-paths": "^6.0.2"
+  },
+  "packageManager": "pnpm@9.15.2"
+}
