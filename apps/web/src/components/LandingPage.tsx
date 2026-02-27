@@ -1,6 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
+import { AppLogo } from '@/components/AppLogo';
 import { ModeToggle } from '@/components/mode-toggle';
 import { setPendingArticleUrl } from '@/lib/pending-article';
 import { isValidUrl, normalizeUrl } from '@/lib/url';
@@ -24,24 +25,8 @@ export function LandingPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 text-slate-900 dark:text-white">
-                <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <title>Reader logo</title>
-                  <path
-                    d="M4 19V5C4 3.89543 4.89543 3 6 3H19C19.5523 3 20 3.44772 20 4V20C20 20.5523 19.5523 21 19 21H6C4.89543 21 4 20.1046 4 19ZM6 5H18V19H6V5Z"
-                    fill="currentColor"
-                    fillOpacity={0.2}
-                  />
-                  <path
-                    d="M4 5C4 3.89543 4.89543 3 6 3H19C19.5523 3 20 3.44772 20 4V19H6C4.89543 19 4 18.1046 4 17V5Z"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  />
-                  <path d="M8 8H16" stroke="currentColor" strokeLinecap="round" strokeWidth={2} />
-                  <path d="M8 12H13" stroke="currentColor" strokeLinecap="round" strokeWidth={2} />
-                </svg>
-              </div>
-              <span className="font-bold text-lg tracking-tight">Reader</span>
+              <AppLogo className="w-7 h-7" imgClassName="w-7 h-7" />
+              <span className="font-bold text-lg tracking-tight">rlist</span>
             </div>
             {/* Auth Button */}
             <Link
@@ -260,16 +245,8 @@ export function LandingPage() {
       <footer className="border-t border-slate-200 dark:border-[#333333] py-10 bg-white dark:bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 text-slate-400 dark:text-slate-600">
-            <div className="w-5 h-5">
-              <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <title>Reader logo</title>
-                <path
-                  d="M4 19V5C4 3.89543 4.89543 3 6 3H19C19.5523 3 20 3.44772 20 4V20C20 20.5523 19.5523 21 19 21H6C4.89543 21 4 20.1046 4 19ZM6 5H18V19H6V5Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </div>
-            <span className="text-sm">© 2024 Minimalist Reader.</span>
+            <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+            <span className="text-sm">rlist © {new Date().getFullYear()}</span>
           </div>
           <div className="flex gap-8">
             <Link

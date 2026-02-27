@@ -1,3 +1,4 @@
+import { AppLogo } from '@/components/AppLogo';
 import { LandingPage } from '@/components/LandingPage';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,7 +27,6 @@ import { useMutation } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
 import { ConvexError } from 'convex/values';
 import {
-  ArrowUpRight,
   BadgeCheck,
   Bell,
   ChevronDown,
@@ -115,12 +115,10 @@ function HomeRoute() {
       {/* Fixed Logo - stays in place while scrolling */}
       <a
         href="/"
-        className="fixed left-4 sm:left-6 top-[17px] z-80 flex items-center group"
+        className="fixed left-4 sm:left-6 top-[13.5px] z-80 flex items-center group"
         style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
       >
-        <div className="w-6 h-6 bg-primary rounded-[6px] flex items-center justify-center group-hover:bg-primary/90 transition-colors">
-          <ArrowUpRight className="w-3.5 h-3.5 text-primary-foreground" />
-        </div>
+        <AppLogo className="w-7 h-7" imgClassName="w-7 h-7" />
       </a>
 
       {/* Header - scrolls away */}
@@ -264,7 +262,7 @@ function HomeRoute() {
                   key={tab.value}
                   type="button"
                   onClick={() => navigate({ to: '/', search: { tab: tab.value } })}
-                  className={`py-4 text-nowrap text-[13px] sm:text-[14px] font-medium transition-colors border-b-2 ${
+                  className={`pt-4 pb-3 text-nowrap text-[13px] sm:text-[14px] font-medium transition-colors border-b-2 ${
                     activeTab === tab.value
                       ? 'text-foreground border-foreground'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
@@ -324,10 +322,8 @@ function HomeRoute() {
       <footer className="border-t border-border bg-background py-4">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-muted-foreground text-[13px] font-medium">
-            <div className="w-5 h-5 bg-muted rounded flex items-center justify-center">
-              <ArrowUpRight className="w-2.5 h-2.5 text-muted-foreground" />
-            </div>
-            <span>ReadList © 2024</span>
+            <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+            <span>rlist © {new Date().getFullYear()}</span>
           </div>
 
           <div className="flex items-center gap-6 text-[13px] text-muted-foreground font-medium">

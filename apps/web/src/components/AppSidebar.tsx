@@ -1,3 +1,4 @@
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -54,7 +55,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex ml-5 items-center gap-2 px-2">
-          <span className="font-bold text-lg">ReadList</span>
+          <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+          <span className="font-bold text-lg">rlist</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

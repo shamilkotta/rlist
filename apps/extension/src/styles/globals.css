@@ -55,8 +55,18 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
   * {
     @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #root {
+    @apply bg-background text-foreground;
   }
 
   body {

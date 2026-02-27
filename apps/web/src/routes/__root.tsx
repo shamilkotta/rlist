@@ -49,6 +49,15 @@ export const Route = createRootRouteWithContext<{
         href: appCss,
       },
       {
+        rel: 'icon',
+        type: 'image/svg+xml',
+        href: '/favicon.svg',
+      },
+      {
+        rel: 'manifest',
+        href: '/manifest.json',
+      },
+      {
         rel: 'preconnect',
         href: 'https://fonts.googleapis.com',
       },
@@ -120,7 +129,7 @@ function RootDocument({
           <Toaster />
           <SidebarProvider defaultOpen={false}>
             {!showLandingLayout && <AppSidebar />}
-            <SidebarInset className={showLandingLayout ? '!p-0 !min-h-screen' : undefined}>
+            <SidebarInset className={showLandingLayout ? 'p-0! min-h-screen!' : undefined}>
               {children}
             </SidebarInset>
           </SidebarProvider>

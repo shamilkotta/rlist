@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { AppLogo } from './AppLogo';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,8 +29,9 @@ export default function Header() {
           <Menu size={24} />
         </button>
         <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img src="/tanstack-word-logo-white.svg" alt="TanStack Logo" className="h-10" />
+          <Link to="/" className="flex items-center gap-3">
+            <AppLogo className="h-9 w-9" imgClassName="h-9 w-9" />
+            <span>rlist</span>
           </Link>
         </h1>
       </header>

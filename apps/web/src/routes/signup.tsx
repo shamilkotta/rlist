@@ -1,8 +1,9 @@
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth-client';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowUpRight, Github, Loader2 } from 'lucide-react';
+import { Github, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/signup')({
@@ -56,9 +57,7 @@ function SignupPage() {
         className="fixed left-4 sm:left-6 top-[17px] z-60 flex items-center group"
         style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
       >
-        <div className="w-6 h-6 bg-primary rounded-[6px] flex items-center justify-center group-hover:bg-primary/90 transition-colors">
-          <ArrowUpRight className="w-3.5 h-3.5 text-primary-foreground" />
-        </div>
+        <AppLogo className="w-7 h-7" imgClassName="w-7 h-7" />
       </Link>
 
       <div className="w-full max-w-[400px] space-y-8">
