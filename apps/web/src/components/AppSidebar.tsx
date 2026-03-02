@@ -101,7 +101,7 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Server Functions">
-                  <Link to="/demo/start/server-funcs">
+                  <Link to="/">
                     <SquareFunction />
                     <span>Start - Server Functions</span>
                   </Link>
@@ -110,7 +110,7 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="API Request">
-                  <Link to="/demo/start/api-request">
+                  <Link to="/">
                     <Network />
                     <span>Start - API Request</span>
                   </Link>
@@ -119,7 +119,7 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="SSR Demos">
-                  <Link to="/demo/start/ssr">
+                  <Link to="/">
                     <StickyNote />
                     <span>Start - SSR Demos</span>
                   </Link>
@@ -127,21 +127,21 @@ export function AppSidebar() {
                 <SidebarMenuSub>
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton asChild>
-                      <Link to="/demo/start/ssr/spa-mode">
+                      <Link to="/">
                         <span>SPA Mode</span>
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton asChild>
-                      <Link to="/demo/start/ssr/full-ssr">
+                      <Link to="/">
                         <span>Full SSR</span>
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton asChild>
-                      <Link to="/demo/start/ssr/data-only">
+                      <Link to="/">
                         <span>Data Only</span>
                       </Link>
                     </SidebarMenuSubButton>

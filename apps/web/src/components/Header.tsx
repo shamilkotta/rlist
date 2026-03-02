@@ -70,7 +70,7 @@ export default function Header() {
           {/* Demo Links Start */}
 
           <Link
-            to="/demo/start/server-funcs"
+            to="/"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
             activeProps={{
@@ -83,7 +83,7 @@ export default function Header() {
           </Link>
 
           <Link
-            to="/demo/start/api-request"
+            to="/"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
             activeProps={{
@@ -97,7 +97,7 @@ export default function Header() {
 
           <div className="flex flex-row justify-between">
             <Link
-              to="/demo/start/ssr"
+              to="/"
               onClick={() => setIsOpen(false)}
               className="flex-1 flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
               activeProps={{
@@ -128,7 +128,7 @@ export default function Header() {
           {groupedExpanded.StartSSRDemo && (
             <div className="flex flex-col ml-4">
               <Link
-                to="/demo/start/ssr/spa-mode"
+                to="/"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
                 activeProps={{
@@ -141,7 +141,7 @@ export default function Header() {
               </Link>
 
               <Link
-                to="/demo/start/ssr/full-ssr"
+                to="/"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
                 activeProps={{
@@ -154,7 +154,7 @@ export default function Header() {
               </Link>
 
               <Link
-                to="/demo/start/ssr/data-only"
+                to="/"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
                 activeProps={{
