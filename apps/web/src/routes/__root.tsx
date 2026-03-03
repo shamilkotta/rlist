@@ -16,19 +16,8 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import appCss from '../styles.css?url';
 
-import { authClient } from '@/lib/auth-client';
-import { getToken } from '@/lib/auth-server';
-import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
-import type { ConvexQueryClient } from '@convex-dev/react-query';
-import { createServerFn } from '@tanstack/react-start';
-
-const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
-  return await getToken();
-});
-
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
-  convexQueryClient: ConvexQueryClient;
 }>()({
   head: () => ({
     meta: [
@@ -76,17 +65,10 @@ export const Route = createRootRouteWithContext<{
       },
     ],
   }),
-  beforeLoad: async (ctx) => {
-    const token = await getAuth();
-    // all queries, mutations and actions through TanStack Query will be
-    // authenticated during SSR if we have a valid token
-    if (token) {
-      // During SSR only (the only time serverHttpClient exists),
-      // set the auth token to make HTTP queries with.
-      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
-    }
+  beforeLoad: async () => {
+    const token = null;
     return {
-      isAuthenticated: !!token,
+      isAuthenticated: false,
       token,
     };
   },
@@ -100,15 +82,9 @@ function RootComponent() {
   const showLandingLayout = location.pathname === '/' && !context.isAuthenticated;
 
   return (
-    <ConvexBetterAuthProvider
-      client={context.convexQueryClient.convexClient}
-      authClient={authClient}
-      initialToken={context.token}
-    >
-      <RootDocument showLandingLayout={showLandingLayout}>
-        <Outlet />
-      </RootDocument>
-    </ConvexBetterAuthProvider>
+    <RootDocument showLandingLayout={showLandingLayout}>
+      <Outlet />
+    </RootDocument>
   );
 }
 
