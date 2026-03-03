@@ -8,14 +8,13 @@ import { routeTree } from './routeTree.gen';
 
 // Create a new router instance
 export const getRouter = () => {
-  const env = import.meta.env as { VITE_CONVEX_URL?: string };
-  const CONVEX_URL = env.VITE_CONVEX_URL;
+  const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL!;
   if (!CONVEX_URL) {
     console.error('missing envar VITE_CONVEX_URL');
   }
 
-  const convexQueryClient = new ConvexQueryClient(CONVEX_URL || '', {
-    expectAuth: false,
+  const convexQueryClient = new ConvexQueryClient(CONVEX_URL, {
+    expectAuth: true,
   });
 
   const queryClient: QueryClient = new QueryClient({

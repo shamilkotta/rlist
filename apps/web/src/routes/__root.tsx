@@ -6,6 +6,7 @@ import {
   Scripts,
   createRootRouteWithContext,
   useLocation,
+  useRouteContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 
@@ -13,9 +14,17 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
-import { authClient } from '@/lib/auth-client';
-import type { ConvexQueryClient } from '@convex-dev/react-query';
 import appCss from '../styles.css?url';
+
+import { authClient } from '@/lib/auth-client';
+import { getToken } from '@/lib/auth-server';
+import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
+import type { ConvexQueryClient } from '@convex-dev/react-query';
+import { createServerFn } from '@tanstack/react-start';
+
+const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
+  return await getToken();
+});
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -68,10 +77,17 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
   beforeLoad: async (ctx) => {
-    void ctx;
+    const token = await getAuth();
+    // all queries, mutations and actions through TanStack Query will be
+    // authenticated during SSR if we have a valid token
+    if (token) {
+      // During SSR only (the only time serverHttpClient exists),
+      // set the auth token to make HTTP queries with.
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
+    }
     return {
-      isAuthenticated: false,
-      token: null,
+      isAuthenticated: !!token,
+      token,
     };
   },
 
@@ -79,14 +95,20 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+  const context = useRouteContext({ from: Route.id });
   const location = useLocation();
-  const { data: session } = authClient.useSession();
-  const showLandingLayout = location.pathname === '/' && !session;
+  const showLandingLayout = location.pathname === '/' && !context.isAuthenticated;
 
   return (
-    <RootDocument showLandingLayout={showLandingLayout}>
-      <Outlet />
-    </RootDocument>
+    <ConvexBetterAuthProvider
+      client={context.convexQueryClient.convexClient}
+      authClient={authClient}
+      initialToken={context.token}
+    >
+      <RootDocument showLandingLayout={showLandingLayout}>
+        <Outlet />
+      </RootDocument>
+    </ConvexBetterAuthProvider>
   );
 }
 
