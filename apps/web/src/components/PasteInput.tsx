@@ -2,9 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useClickOutside } from '@/hooks/use-click-outside';
 import { useDebounce } from '@/hooks/use-debounce';
-import { MOCK_ARTICLES_QUERY_KEY, addArticle, fetchMetadata } from '@/lib/mock-articles';
 import { getDomain, isValidUrl } from '@/lib/url';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { convexAction, useConvexAction } from '@convex-dev/react-query';
+import { api } from '@rlist/api/convex/_generated/api';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { ConvexError } from 'convex/values';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -19,7 +21,6 @@ function LinkIcon({ className }: { className?: string }) {
 }
 
 export function PasteInput() {
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [showUrlPreview, setShowUrlPreview] = useState(false);
@@ -34,18 +35,12 @@ export function PasteInput() {
   const shouldFetch = showUrlPreview && isValidUrl(debouncedUrl);
 
   const { data: metadata, isLoading: isLoadingMetadata } = useQuery({
-    queryKey: [...MOCK_ARTICLES_QUERY_KEY, 'metadata', debouncedUrl],
-    queryFn: () => fetchMetadata(debouncedUrl),
-    enabled: shouldFetch,
+    ...convexAction(api.articles.fetchMetadata, shouldFetch ? { url: debouncedUrl } : 'skip'),
     retry: false,
   });
 
-  const addArticleMutation = useMutation({
-    mutationFn: addArticle,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: MOCK_ARTICLES_QUERY_KEY });
-    },
-  });
+  const mutationFn = useConvexAction(api.articles.addArticle);
+  const addArticleMutation = useMutation({ mutationFn });
 
   const resetState = useCallback(() => {
     setOpen(false);
@@ -102,11 +97,15 @@ export function PasteInput() {
           resetState();
         },
         onError: (error) => {
-          if (error instanceof Error && error.message === 'Article already saved') {
+          if (
+            error instanceof ConvexError &&
+            'code' in error.data &&
+            error.data.code === 'ALREADY_SAVED_ARTICLE'
+          ) {
             toast.error('Article already saved');
             return;
           }
-          toast.error('Failed to add article');
+          toast.error(error instanceof ConvexError ? error.data.message : 'Failed to add article');
         },
       }
     );

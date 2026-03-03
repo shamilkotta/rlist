@@ -2,9 +2,10 @@ import { ArticleActions } from '@/components/ArticleActions';
 import { TagEditor } from '@/components/TagEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import type { Id } from '@rlist/api/convex/_generated/dataModel';
 
 interface ArticleListItemProps {
-  id: string;
+  id: Id<'articles'>;
   title: string;
   description: string;
   domain: string;

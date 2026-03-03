@@ -1,7 +1,8 @@
+import type { Id } from '@rlist/api/convex/_generated/dataModel';
 import { formatRelativeDate } from './date';
 
 export type ArticleForDisplay = {
-  id: string;
+  id: Id<'articles'>;
   url: string;
   title: string;
   description: string;
@@ -14,7 +15,7 @@ export type ArticleForDisplay = {
 };
 
 type RawArticle = {
-  articleId: string;
+  articleId: Id<'articles'>;
   url: string;
   title: string | null;
   description: string | null;
