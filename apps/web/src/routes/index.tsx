@@ -13,19 +13,11 @@ export const Route = createFileRoute('/')({
 
 function LandingRoute() {
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: '2rem',
-        color: '#0f172a',
-      }}
-    >
-      <section style={{ maxWidth: 720, textAlign: 'center' }}>
-        <h1 style={{ fontSize: 'clamp(2rem, 6vw, 3.5rem)', marginBottom: '0.75rem' }}>rlist</h1>
-        <p style={{ fontSize: '1.125rem', opacity: 0.8 }}>
-          Minimal deployment verification page. If you can see this, the web app is loading.
+    <main className="min-h-screen grid place-items-center bg-background text-foreground p-8">
+      <section className="text-center max-w-xl">
+        <h1 className="text-5xl font-bold tracking-tight mb-4">rlist</h1>
+        <p className="text-lg text-muted-foreground">
+          Deployment verification page. Better Auth and Convex are fully removed from the web app.
         </p>
       </section>
     </main>
