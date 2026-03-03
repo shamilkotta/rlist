@@ -14,10 +14,12 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import { authClient } from '@/lib/auth-client';
+import type { ConvexQueryClient } from '@convex-dev/react-query';
 import appCss from '../styles.css?url';
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
+  convexQueryClient: ConvexQueryClient;
 }>()({
   head: () => ({
     meta: [
