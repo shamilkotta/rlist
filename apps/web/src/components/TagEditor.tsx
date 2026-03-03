@@ -1,33 +1,39 @@
-import { useConvexMutation } from '@convex-dev/react-query';
-import { api } from '@rlist/api/convex/_generated/api';
-import type { Id } from '@rlist/api/convex/_generated/dataModel';
+import { MOCK_ARTICLES_QUERY_KEY, updateArticleTags } from '@/lib/mock-articles';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 const MAX_TAGS = 2;
 const TAG_MAX_LENGTH = 15;
 
 interface TagEditorProps {
-  articleId: Id<'articles'>;
+  articleId: string;
   initialTags: string[];
 }
 
 export function TagEditor({ articleId, initialTags }: TagEditorProps) {
-  const [tags, setTags] = useState<string[]>(initialTags);
+  const [tags, setTags] = useState<string[]>(() => initialTags);
   const [tagInput, setTagInput] = useState('');
-  const updateTags = useConvexMutation(api.articles.updateArticleTags);
-
-  useEffect(() => {
-    setTags(initialTags);
-  }, [initialTags]);
+  const queryClient = useQueryClient();
+  const updateTagsMutation = useMutation({
+    mutationFn: updateArticleTags,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MOCK_ARTICLES_QUERY_KEY });
+    },
+  });
 
   const persistTags = (newTags: string[]) => {
     setTags(newTags);
-    updateTags({ articleId, tags: newTags }).catch(() => {
-      setTags(initialTags);
-      toast.error('Failed to update tags');
-    });
+    updateTagsMutation.mutate(
+      { articleId, tags: newTags },
+      {
+        onError: () => {
+          setTags(initialTags);
+          toast.error('Failed to update tags');
+        },
+      }
+    );
   };
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +65,7 @@ export function TagEditor({ articleId, initialTags }: TagEditorProps) {
   return (
     <div
       className="flex items-center gap-2 flex-wrap"
+      role="presentation"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >

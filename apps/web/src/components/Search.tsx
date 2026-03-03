@@ -1,8 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDebounce } from '@/hooks/use-debounce';
 import { mapArticlesForDisplay } from '@/lib/article';
-import { convexQuery } from '@convex-dev/react-query';
-import { api } from '@rlist/api/convex/_generated/api';
+import { MOCK_ARTICLES_QUERY_KEY, listUserArticles, searchUserArticles } from '@/lib/mock-articles';
 import { useQuery } from '@tanstack/react-query';
 import { useRouteContext } from '@tanstack/react-router';
 import { Command } from 'cmdk';
@@ -20,17 +19,21 @@ export function Search() {
   const hasSearchQuery = debouncedQuery.trim().length > 0;
 
   const { data: recentArticlesPage } = useQuery({
-    ...convexQuery(api.articles.listUserArticles, {
-      paginationOpts: {
-        numItems: 10,
-        cursor: null,
-      },
-    }),
+    queryKey: [...MOCK_ARTICLES_QUERY_KEY, 'search-default', 10],
+    queryFn: () =>
+      listUserArticles({
+        filter: 'all',
+        paginationOpts: {
+          numItems: 10,
+          cursor: null,
+        },
+      }),
     enabled: isAuthenticated && open,
   });
 
   const { data: searchResults, isLoading: isSearchLoading } = useQuery({
-    ...convexQuery(api.articles.searchUserArticles, { query: debouncedQuery }),
+    queryKey: [...MOCK_ARTICLES_QUERY_KEY, 'search', debouncedQuery],
+    queryFn: () => searchUserArticles(debouncedQuery),
     enabled: isAuthenticated && open && hasSearchQuery,
   });
 

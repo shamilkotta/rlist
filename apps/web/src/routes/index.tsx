@@ -16,16 +16,14 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { usePaginatedQuery } from '@/hooks/use-paginated-articles';
 import { mapArticlesForDisplay } from '@/lib/article';
 import { authClient } from '@/lib/auth-client';
+import { MOCK_ARTICLES_QUERY_KEY, addArticle } from '@/lib/mock-articles';
 import {
   clearPendingArticleUrl,
   getPendingArticleUrl,
   setPendingArticleUrl,
 } from '@/lib/pending-article';
-import { useConvexAction } from '@convex-dev/react-query';
-import { api } from '@rlist/api/convex/_generated/api';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
-import { ConvexError } from 'convex/values';
 import {
   BadgeCheck,
   Bell,
@@ -106,7 +104,7 @@ function HomeRoute() {
     window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
   }, [viewMode]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !session) {
     return <LandingPage />;
   }
 
@@ -348,14 +346,19 @@ function HomeRoute() {
 }
 
 function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode: ViewMode }) {
+  const queryClient = useQueryClient();
   const {
     results: allUserArticles,
     status: paginationStatus,
     loadMore,
   } = usePaginatedQuery({ filter: activeTab, pageSize: ARTICLE_PAGE_SIZE });
 
-  const addArticleMutationFn = useConvexAction(api.articles.addArticle);
-  const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
+  const addArticleMutation = useMutation({
+    mutationFn: addArticle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MOCK_ARTICLES_QUERY_KEY });
+    },
+  });
 
   const isInitialArticlesLoading = paginationStatus === 'LoadingFirstPage';
   const canLoadMore = paginationStatus === 'CanLoadMore';
@@ -377,15 +380,8 @@ function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode:
       { url: pendingUrl, tags: [] },
       {
         onSuccess: () => toast.success('Article added'),
-        onError: (err) => {
-          if (
-            err instanceof ConvexError &&
-            'code' in err.data &&
-            err.data.code === 'ALREADY_SAVED_ARTICLE'
-          ) {
-            return;
-          }
-          toast.error(err instanceof ConvexError ? err.data.message : 'Failed to add article');
+        onError: () => {
+          toast.error('Failed to add article');
           setPendingArticleUrl(pendingUrl);
         },
       }

@@ -15,46 +15,50 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useConvexMutation } from '@convex-dev/react-query';
-import { api } from '@rlist/api/convex/_generated/api';
-import type { Id } from '@rlist/api/convex/_generated/dataModel';
-import { useMutation } from '@tanstack/react-query';
+import {
+  MOCK_ARTICLES_QUERY_KEY,
+  deleteArticle,
+  toggleArchiveStatus,
+  toggleReadStatus,
+} from '@/lib/mock-articles';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface ArticleActionsProps {
-  articleId: Id<'articles'>;
+  articleId: string;
   isRead: boolean;
   isArchived: boolean;
 }
 
 export function ArticleActions({ articleId, isRead, isArchived }: ArticleActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const queryClient = useQueryClient();
 
-  const toggleReadMutationFn = useConvexMutation(api.articles.toggleReadStatus);
   const toggleReadMutation = useMutation({
-    mutationFn: toggleReadMutationFn,
+    mutationFn: toggleReadStatus,
     onSuccess: () => {
       toast.success(isRead ? 'Marked as unread' : 'Marked as read');
+      queryClient.invalidateQueries({ queryKey: MOCK_ARTICLES_QUERY_KEY });
     },
     onError: () => toast.error('Failed to update read status'),
   });
 
-  const toggleArchiveMutationFn = useConvexMutation(api.articles.toggleArchiveStatus);
   const toggleArchiveMutation = useMutation({
-    mutationFn: toggleArchiveMutationFn,
+    mutationFn: toggleArchiveStatus,
     onSuccess: () => {
       toast.success(isArchived ? 'Unarchived' : 'Archived');
+      queryClient.invalidateQueries({ queryKey: MOCK_ARTICLES_QUERY_KEY });
     },
     onError: () => toast.error('Failed to update archive status'),
   });
 
-  const deleteArticleMutationFn = useConvexMutation(api.articles.deleteArticle);
   const deleteArticleMutation = useMutation({
-    mutationFn: deleteArticleMutationFn,
+    mutationFn: deleteArticle,
     onSuccess: () => {
       toast.success('Article deleted');
+      queryClient.invalidateQueries({ queryKey: MOCK_ARTICLES_QUERY_KEY });
     },
     onError: () => toast.error('Failed to delete article'),
   });
