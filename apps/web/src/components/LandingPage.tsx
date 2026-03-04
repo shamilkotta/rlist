@@ -250,7 +250,7 @@ export function LandingPage() {
           </div>
           <div className="flex gap-8">
             <Link
-              to="/"
+              to="/privacy"
               className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors"
             >
               Privacy

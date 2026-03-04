@@ -60,6 +60,12 @@ const TABS: { label: string; value: TabFilter }[] = [
   { label: 'Archive', value: 'archive' },
 ];
 
+const TAB_HEADINGS: Record<TabFilter, string> = {
+  unread: 'Unread Articles',
+  all: 'All Articles',
+  archive: 'Archived Articles',
+};
+
 export const Route = createFileRoute('/')({
   component: HomeRoute,
   validateSearch: (search: Record<string, unknown>): { tab?: TabFilter } => {
@@ -304,7 +310,7 @@ function HomeRoute() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <h2 className="text-[28px] md:text-[32px] font-bold tracking-tight text-foreground mb-2">
-                Your Articles
+                {TAB_HEADINGS[activeTab]}
               </h2>
               {/* <p className="text-[14px] text-muted-foreground">
                 Save and organize articles for later reading
@@ -327,7 +333,7 @@ function HomeRoute() {
           </div>
 
           <div className="flex items-center gap-6 text-[13px] text-muted-foreground font-medium">
-            <a href="/" className="hover:text-foreground transition-colors">
+            <a href="/privacy" className="hover:text-foreground transition-colors">
               Privacy
             </a>
             <a href="/" className="hover:text-foreground transition-colors">
