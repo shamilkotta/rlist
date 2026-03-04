@@ -6,7 +6,9 @@
   "permissions": ["storage", "activeTab", "tabs", "commands"],
   "host_permissions": [
     "https://flexible-vole-955.convex.cloud/*",
-    "https://flexible-vole-955.convex.site/*"
+    "https://flexible-vole-955.convex.site/*",
+    "https://neat-rhinoceros-82.convex.cloud/*",
+    "https://neat-rhinoceros-82.convex.site/*"
   ],
   "action": {
     "default_title": "rlist",
