@@ -6,6 +6,7 @@ import type { Id } from '@rlist/api/convex/_generated/dataModel';
 
 interface ArticleCardProps {
   id: Id<'articles'>;
+  url: string;
   title: string;
   description: string;
   domain: string;
@@ -15,6 +16,8 @@ interface ArticleCardProps {
   faviconUrl?: string;
   isRead: boolean;
   isArchived: boolean;
+  activeTags?: string[];
+  onTagClick?: (_tag: string) => void;
 }
 
 function CardCorners() {
@@ -42,6 +45,7 @@ function CardCorners() {
 
 export function ArticleCard({
   id,
+  url,
   title,
   description,
   domain,
@@ -50,9 +54,24 @@ export function ArticleCard({
   faviconUrl,
   isRead,
   isArchived,
+  activeTags,
+  onTagClick,
 }: ArticleCardProps) {
+  const openArticle = () => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="relative group h-full p-4 lg:p-6 cursor-pointer flex flex-col border-r border-b border-dashed border-border">
+    <div
+      onClick={openArticle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openArticle();
+        }
+      }}
+      className="relative group h-full p-4 lg:p-6 cursor-pointer flex flex-col border-r border-b border-dashed border-border"
+    >
       <CardCorners />
       <div className="flex items-center justify-between mb-3 md:mb-6">
         <div className="flex items-center gap-3">
@@ -93,7 +112,12 @@ export function ArticleCard({
       </div>
 
       <div className="mt-auto">
-        <TagEditor articleId={id} initialTags={tags} />
+        <TagEditor
+          articleId={id}
+          initialTags={tags}
+          activeTags={activeTags}
+          onTagClick={onTagClick}
+        />
       </div>
     </div>
   );

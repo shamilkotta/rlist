@@ -15,9 +15,11 @@ const CACHE_GC_TIME = 5 * 60 * 1000; // 5 minutes
 // TODO: revisit this implementation
 export function usePaginatedQuery({
   filter,
+  tags,
   pageSize,
 }: {
   filter: ArticleFilter;
+  tags: string[];
   pageSize: number;
 }): {
   results: Array<ArticleListItem>;
@@ -27,8 +29,8 @@ export function usePaginatedQuery({
   const queryClient = useQueryClient();
 
   const cursorCacheKey = useMemo(
-    () => [CACHE_KEY_PREFIX, 'cursors', filter, pageSize] as const,
-    [filter, pageSize]
+    () => [CACHE_KEY_PREFIX, 'cursors', filter, tags.join(','), pageSize] as const,
+    [filter, pageSize, tags]
   );
 
   const [loadedCursors, setLoadedCursors] = useState<Array<string | null>>(
@@ -52,6 +54,7 @@ export function usePaginatedQuery({
     queries: loadedCursors.map((cursor) => ({
       ...convexQuery(api.articles.listUserArticles, {
         filter,
+        tags: tags.length > 0 ? tags : undefined,
         paginationOpts: {
           numItems: pageSize,
           cursor,

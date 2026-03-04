@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useConvexMutation } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import type { Id } from '@rlist/api/convex/_generated/dataModel';
@@ -11,9 +12,11 @@ const TAG_MAX_LENGTH = 15;
 interface TagEditorProps {
   articleId: Id<'articles'>;
   initialTags: string[];
+  activeTags?: string[];
+  onTagClick?: (_tag: string) => void;
 }
 
-export function TagEditor({ articleId, initialTags }: TagEditorProps) {
+export function TagEditor({ articleId, initialTags, activeTags = [], onTagClick }: TagEditorProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [tagInput, setTagInput] = useState('');
   const updateTags = useConvexMutation(api.articles.updateArticleTags);
@@ -65,12 +68,34 @@ export function TagEditor({ articleId, initialTags }: TagEditorProps) {
       {tags.map((tag) => (
         <div
           key={tag}
-          className="flex items-center gap-1 px-2 py-0.5 bg-background border border-border rounded text-[11px] font-semibold uppercase tracking-wider text-foreground"
+          className={cn(
+            '`badge flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider text-foreground border transition-colors',
+            activeTags.includes(tag)
+              ? 'bg-primary/10 border-primary/40'
+              : 'bg-background border-border hover:bg-muted/70 hover:border-primary/30',
+            'cursor-pointer'
+          )}
         >
-          <span>{tag}</span>
           <button
             type="button"
-            onClick={() => removeTag(tag)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTagClick?.(tag);
+            }}
+            className={cn(
+              'transition-colors',
+              activeTags.includes(tag) ? 'text-primary' : 'text-foreground hover:text-primary',
+              'cursor-pointer'
+            )}
+          >
+            {tag}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeTag(tag);
+            }}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-3 h-3" />

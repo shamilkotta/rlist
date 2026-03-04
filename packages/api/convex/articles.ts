@@ -48,6 +48,23 @@ type FetchMetadataResult = {
   domain: string;
 };
 
+const TAG_MAX_LENGTH = 15;
+const MAX_FILTER_TAGS = 12;
+
+function normalizeTagFilters(tags: string[]): string[] {
+  return [...new Set(tags.map((tag) => tag.trim().toUpperCase()).filter(Boolean))]
+    .filter((tag) => tag.length <= TAG_MAX_LENGTH)
+    .slice(0, MAX_FILTER_TAGS);
+}
+
+function hasMatchingTag(articleTags: string[], selectedTags: string[]): boolean {
+  if (selectedTags.length === 0) {
+    return true;
+  }
+
+  return articleTags.some((tag) => selectedTags.includes(tag));
+}
+
 export const fetchMetadata = action({
   args: { url: v.string() },
   returns: v.object({
@@ -412,6 +429,7 @@ export const listUserArticles = query({
   args: {
     paginationOpts: paginationOptsValidator,
     filter: v.optional(v.union(v.literal('unread'), v.literal('all'), v.literal('archive'))),
+    tags: v.optional(v.array(v.string())),
   },
   returns: v.object({
     page: v.array(userArticleListItemValidator),
@@ -428,6 +446,7 @@ export const listUserArticles = query({
     }
 
     const filter = args.filter ?? 'unread';
+    const tags = normalizeTagFilters(args.tags ?? []);
     const userId = user._id.toString();
     const userArticles =
       filter === 'archive'
@@ -456,6 +475,10 @@ export const listUserArticles = query({
 
     const page = [];
     for (const ua of userArticles.page) {
+      if (!hasMatchingTag(ua.tags, tags)) {
+        continue;
+      }
+
       const article = await ctx.db.get(ua.articleId);
       if (article) {
         page.push({
@@ -478,6 +501,52 @@ export const listUserArticles = query({
       isDone: userArticles.isDone,
       continueCursor: userArticles.continueCursor,
     };
+  },
+});
+
+export const listUserTags = query({
+  args: {
+    filter: v.optional(v.union(v.literal('unread'), v.literal('all'), v.literal('archive'))),
+  },
+  returns: v.array(v.string()),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
+
+    const filter = args.filter ?? 'unread';
+    const userId = user._id.toString();
+    const userArticles =
+      filter === 'archive'
+        ? await ctx.db
+            .query('userArticles')
+            .withIndex('by_userId_and_isArchived', (q) =>
+              q.eq('userId', userId).eq('isArchived', true)
+            )
+            .order('desc')
+            .collect()
+        : filter === 'all'
+          ? await ctx.db
+              .query('userArticles')
+              .withIndex('by_userId_and_isArchived', (q) =>
+                q.eq('userId', userId).eq('isArchived', false)
+              )
+              .order('desc')
+              .collect()
+          : await ctx.db
+              .query('userArticles')
+              .withIndex('by_userId_and_isArchived_and_isRead', (q) =>
+                q.eq('userId', userId).eq('isArchived', false).eq('isRead', false)
+              )
+              .order('desc')
+              .collect();
+
+    const tags = normalizeTagFilters(userArticles.flatMap((article) => article.tags));
+    return tags.sort((left, right) => left.localeCompare(right));
   },
 });
 

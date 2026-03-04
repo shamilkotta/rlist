@@ -21,11 +21,13 @@ import {
   getPendingArticleUrl,
   setPendingArticleUrl,
 } from '@/lib/pending-article';
-import { useConvexAction } from '@convex-dev/react-query';
+import { cn } from '@/lib/utils';
+import { convexQuery, useConvexAction } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
 import { ConvexError } from 'convex/values';
+import { motion } from 'framer-motion';
 import {
   BadgeCheck,
   Bell,
@@ -37,6 +39,7 @@ import {
   LogOut,
   Sparkles,
   TextAlignEnd,
+  X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -47,12 +50,15 @@ import { Search } from '../components/Search';
 
 type ViewMode = 'grid' | 'list';
 type TabFilter = 'unread' | 'all' | 'archive';
+type HomeRouteSearch = { tab?: TabFilter; tags?: string[] };
 
 const VALID_TABS: TabFilter[] = ['unread', 'all', 'archive'];
 const SKELETON_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'];
 const VIEW_MODE_STORAGE_KEY = 'rlist:view-mode';
 const ARTICLE_PAGE_SIZE = 24;
 const DEFAULT_VIEW_MODE: ViewMode = 'grid';
+const TAG_MAX_LENGTH = 15;
+const MAX_FILTER_TAGS = 12;
 
 const TABS: { label: string; value: TabFilter }[] = [
   { label: 'Unread', value: 'unread' },
@@ -66,16 +72,42 @@ const TAB_HEADINGS: Record<TabFilter, string> = {
   archive: 'Archived Articles',
 };
 
+function normalizeTags(rawTags: unknown): string[] {
+  if (!rawTags) {
+    return [];
+  }
+
+  const tagValues =
+    typeof rawTags === 'string'
+      ? rawTags.split(',')
+      : Array.isArray(rawTags)
+        ? rawTags.flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
+        : [];
+
+  return [...new Set(tagValues.map((tag) => tag.trim().toUpperCase()).filter(Boolean))]
+    .filter((tag) => tag.length <= TAG_MAX_LENGTH)
+    .slice(0, MAX_FILTER_TAGS);
+}
+
+function toTagsSearchParam(tags: string[]): string[] | undefined {
+  if (tags.length === 0) {
+    return undefined;
+  }
+
+  return tags;
+}
+
 export const Route = createFileRoute('/')({
   component: HomeRoute,
-  validateSearch: (search: Record<string, unknown>): { tab?: TabFilter } => {
+  validateSearch: (search: Record<string, unknown>): HomeRouteSearch => {
     const tab = search.tab as string;
+    const tags = normalizeTags(search.tags);
     if (VALID_TABS.includes(tab as TabFilter)) {
-      return { tab: tab as TabFilter };
+      return { tab: tab as TabFilter, tags };
     }
-    return {};
+    return { tags };
   },
-  loaderDeps: ({ search }) => ({ tab: search.tab ?? 'unread' }),
+  loaderDeps: ({ search }) => ({ tab: search.tab ?? 'unread', tags: search.tags?.join(',') ?? '' }),
   loader: async (ctx) => {
     return {
       isAuthenticated: ctx.context.isAuthenticated,
@@ -93,12 +125,14 @@ export const Route = createFileRoute('/')({
 });
 
 function HomeRoute() {
-  const { tab } = Route.useSearch();
+  const { tab, tags } = Route.useSearch();
   const activeTab = tab ?? 'unread';
+  const selectedTags = tags ?? [];
   const { isAuthenticated } = useRouteContext({ from: Route.id });
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
   const { data: session, isPending } = authClient.useSession();
+  const [isTagPanelOpen, setIsTagPanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') {
       return DEFAULT_VIEW_MODE;
@@ -111,6 +145,39 @@ function HomeRoute() {
   useEffect(() => {
     window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
   }, [viewMode]);
+
+  const { data: availableTags = [] } = useQuery({
+    ...convexQuery(api.articles.listUserTags, { filter: activeTab }),
+  });
+
+  const toggleTagFilter = (tag: string) => {
+    const normalizedTag = normalizeTags([tag]).at(0);
+    if (!normalizedTag) {
+      return;
+    }
+
+    const nextTags = selectedTags.includes(normalizedTag)
+      ? selectedTags.filter((item) => item !== normalizedTag)
+      : normalizeTags([...selectedTags, normalizedTag]);
+
+    navigate({
+      to: '/',
+      search: {
+        tab: activeTab,
+        tags: toTagsSearchParam(nextTags),
+      },
+    });
+  };
+
+  const clearTagFilters = () => {
+    navigate({
+      to: '/',
+      search: {
+        tab: activeTab,
+        tags: undefined,
+      },
+    });
+  };
 
   if (!isAuthenticated) {
     return <LandingPage />;
@@ -134,7 +201,7 @@ function HomeRoute() {
             {/* Spacer for fixed logo */}
             <div className="w-3" />
 
-            <nav className="hidden md:flex items-center gap-6">
+            {/* <nav className="hidden md:flex items-center gap-6">
               {['Dashboard', 'Discover', 'Analytics'].map((item) => (
                 <a
                   key={item}
@@ -148,7 +215,7 @@ function HomeRoute() {
                   {item}
                 </a>
               ))}
-            </nav>
+            </nav> */}
           </div>
 
           <div className="flex items-center gap-3">
@@ -267,8 +334,13 @@ function HomeRoute() {
                 <button
                   key={tab.value}
                   type="button"
-                  onClick={() => navigate({ to: '/', search: { tab: tab.value } })}
-                  className={`pt-4 pb-3 text-nowrap text-[13px] sm:text-[14px] font-medium transition-colors border-b-2 ${
+                  onClick={() =>
+                    navigate({
+                      to: '/',
+                      search: { tab: tab.value, tags: toTagsSearchParam(selectedTags) },
+                    })
+                  }
+                  className={`pt-4 pb-4 text-nowrap text-[13px] sm:text-[14px] font-medium transition-colors border-b-2 ${
                     activeTab === tab.value
                       ? 'text-foreground border-foreground'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
@@ -279,9 +351,25 @@ function HomeRoute() {
               ))}
               <button
                 type="button"
-                className="py-4 flex items-center gap-1.5 text-[13px] sm:text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent whitespace-nowrap"
+                onClick={() => setIsTagPanelOpen((open) => !open)}
+                className={cn(
+                  'py-4 flex items-center gap-1.5 text-[13px] sm:text-[14px] font-medium transition-colors whitespace-nowrap',
+                  selectedTags.length > 0 || isTagPanelOpen
+                    ? 'text-foreground border-foreground'
+                    : 'text-muted-foreground border-transparent hover:text-foreground'
+                )}
               >
-                Tags <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                Tags
+                {selectedTags.length > 0 && (
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[11px] leading-none text-foreground">
+                    {selectedTags.length}
+                  </span>
+                )}
+                <ChevronDown
+                  className={`w-3.5 h-3.5 opacity-50 transition-transform ${
+                    isTagPanelOpen ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
             </div>
 
@@ -303,25 +391,83 @@ function HomeRoute() {
         </div>
       </div>
 
+      {isTagPanelOpen && (
+        <div className=" bg-background/95">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-3">
+            {selectedTags.length > 0 && (
+              <div className="mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                {selectedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTagFilter(tag)}
+                    className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-primary/15"
+                  >
+                    {tag}
+                    <X className="h-3 w-3" />
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={clearTagFilters}
+                  className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+
+            {availableTags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map((tag) => {
+                  const isSelected = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTagFilter(tag)}
+                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                        isSelected
+                          ? 'border-primary/40 bg-primary/10 text-primary'
+                          : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No tags found for this tab.</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 pb-20">
         {/* Add URL Section */}
         <section className="max-w-[1400px] mx-auto px-3 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
+            <motion.div layout transition={{ type: 'spring', bounce: 0, duration: 0.28 }}>
               <h2 className="text-[28px] md:text-[32px] font-bold tracking-tight text-foreground mb-2">
                 {TAB_HEADINGS[activeTab]}
               </h2>
               {/* <p className="text-[14px] text-muted-foreground">
                 Save and organize articles for later reading
               </p> */}
-            </div>
+            </motion.div>
             <PasteInput />
           </div>
         </section>
 
         {/* Articles Grid/List View */}
-        <ArticlesList activeTab={activeTab} viewMode={viewMode} />
+        <ArticlesList
+          activeTab={activeTab}
+          viewMode={viewMode}
+          selectedTags={selectedTags}
+          onTagClick={toggleTagFilter}
+        />
       </main>
 
       {/* Footer */}
@@ -353,12 +499,22 @@ function HomeRoute() {
   );
 }
 
-function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode: ViewMode }) {
+function ArticlesList({
+  activeTab,
+  viewMode,
+  selectedTags,
+  onTagClick,
+}: {
+  activeTab: TabFilter;
+  viewMode: ViewMode;
+  selectedTags: string[];
+  onTagClick: (_tag: string) => void;
+}) {
   const {
     results: allUserArticles,
     status: paginationStatus,
     loadMore,
-  } = usePaginatedQuery({ filter: activeTab, pageSize: ARTICLE_PAGE_SIZE });
+  } = usePaginatedQuery({ filter: activeTab, tags: selectedTags, pageSize: ARTICLE_PAGE_SIZE });
 
   const addArticleMutationFn = useConvexAction(api.articles.addArticle);
   const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
@@ -406,9 +562,13 @@ function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode:
         <ArticlesListFallback viewMode={viewMode} />
       ) : articles.length === 0 ? (
         <div className="py-12 text-center text-muted-foreground text-sm">
-          {activeTab === 'unread' && "No unread articles. You're all caught up!"}
-          {activeTab === 'all' && 'No articles yet. Paste a URL above to add your first article.'}
-          {activeTab === 'archive' && 'No archived articles.'}
+          {selectedTags.length > 0
+            ? 'No articles match the selected tags.'
+            : activeTab === 'unread'
+              ? "No unread articles. You're all caught up!"
+              : activeTab === 'all'
+                ? 'No articles yet. Paste a URL above to add your first article.'
+                : 'No archived articles.'}
         </div>
       ) : (
         <>
@@ -416,14 +576,24 @@ function ArticlesList({ activeTab, viewMode }: { activeTab: TabFilter; viewMode:
             className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
           >
             {articles.map((article) => (
-              <ArticleCard key={article.id} {...article} />
+              <ArticleCard
+                key={article.id}
+                {...article}
+                activeTags={selectedTags}
+                onTagClick={onTagClick}
+              />
             ))}
           </div>
           <div
             className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
           >
             {articles.map((article) => (
-              <ArticleListItem key={article.id} {...article} />
+              <ArticleListItem
+                key={article.id}
+                {...article}
+                activeTags={selectedTags}
+                onTagClick={onTagClick}
+              />
             ))}
           </div>
           {(canLoadMore || isLoadingMore) && (

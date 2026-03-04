@@ -6,6 +6,7 @@ import type { Id } from '@rlist/api/convex/_generated/dataModel';
 
 interface ArticleListItemProps {
   id: Id<'articles'>;
+  url: string;
   title: string;
   description: string;
   domain: string;
@@ -15,10 +16,13 @@ interface ArticleListItemProps {
   faviconUrl?: string;
   isRead: boolean;
   isArchived: boolean;
+  activeTags?: string[];
+  onTagClick?: (_tag: string) => void;
 }
 
 export function ArticleListItem({
   id,
+  url,
   title,
   description,
   domain,
@@ -27,9 +31,24 @@ export function ArticleListItem({
   faviconUrl,
   isRead,
   isArchived,
+  activeTags,
+  onTagClick,
 }: ArticleListItemProps) {
+  const openArticle = () => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="relative group py-5 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border">
+    <div
+      onClick={openArticle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openArticle();
+        }
+      }}
+      className="relative group py-5 px-4 cursor-pointer flex flex-col gap-1.5 border-r border-b border-dashed border-border"
+    >
       <ListItemCorners />
 
       <div className="flex items-center justify-between gap-4">
@@ -47,7 +66,12 @@ export function ArticleListItem({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <TagEditor articleId={id} initialTags={tags} />
+          <TagEditor
+            articleId={id}
+            initialTags={tags}
+            activeTags={activeTags}
+            onTagClick={onTagClick}
+          />
           <span className="text-[13px] text-muted-foreground font-medium whitespace-nowrap">
             {date}
           </span>

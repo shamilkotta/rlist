@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth-client';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Github, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/signup')({
@@ -130,7 +130,7 @@ function SignupPage() {
           </Button>
         </form>
 
-        <div className="relative">
+        {/* <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-border" />
           </div>
@@ -146,7 +146,7 @@ function SignupPage() {
         >
           <Github className="w-4 h-4 mr-2" />
           GitHub
-        </Button>
+        </Button> */}
 
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
