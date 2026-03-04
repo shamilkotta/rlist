@@ -401,7 +401,7 @@ function HomeRoute() {
                     key={tag}
                     type="button"
                     onClick={() => toggleTagFilter(tag)}
-                    className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-primary/15"
+                    className="inline-flex items-center gap-1 rounded border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-primary/15"
                   >
                     {tag}
                     <X className="h-3 w-3" />
@@ -426,7 +426,7 @@ function HomeRoute() {
                       key={tag}
                       type="button"
                       onClick={() => toggleTagFilter(tag)}
-                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      className={`inline-flex items-center rounded border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
                         isSelected
                           ? 'border-primary/40 bg-primary/10 text-primary'
                           : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground'

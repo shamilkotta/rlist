@@ -69,7 +69,7 @@ export function TagEditor({ articleId, initialTags, activeTags = [], onTagClick 
         <div
           key={tag}
           className={cn(
-            '`badge flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider text-foreground border transition-colors',
+            'badge flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider text-foreground border transition-colors',
             activeTags.includes(tag)
               ? 'bg-primary/10 border-primary/40'
               : 'bg-background border-border hover:bg-muted/70 hover:border-primary/30',
