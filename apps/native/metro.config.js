@@ -1,22 +1,24 @@
+// Learn more https://docs.expo.io/guides/customizing-metro
 const path = require('node:path');
 const { getDefaultConfig } = require('expo/metro-config');
 
+// Find the workspace root, this can be replaced with `find-yarn-workspace-root`
+const workspaceRoot = path.resolve(__dirname, '../..');
 const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// Ensure React resolves from workspace/app roots instead of nested dependency node_modules.
+config.resolver.sourceExts.push('sql');
+config.transformer.babelTransformerPath = require.resolve('react-native-svg-transformer/expo');
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'svg');
+config.resolver.sourceExts.push('svg');
+
+// 1. Watch all files within the monorepo
 config.watchFolders = [workspaceRoot];
+// 2. Let Metro know where to resolve packages, and in what order
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(workspaceRoot, 'node_modules'),
 ];
-config.resolver.extraNodeModules = {
-  react: path.resolve(projectRoot, 'node_modules/react'),
-  'react/jsx-runtime': path.resolve(projectRoot, 'node_modules/react/jsx-runtime'),
-  'react/jsx-dev-runtime': path.resolve(projectRoot, 'node_modules/react/jsx-dev-runtime'),
-  'react-native': path.resolve(workspaceRoot, 'node_modules/react-native'),
-};
 
 module.exports = config;
