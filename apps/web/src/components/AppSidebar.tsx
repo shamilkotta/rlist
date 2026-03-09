@@ -55,7 +55,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex ml-5 items-center gap-2 px-2">
-          <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+          <AppLogo className="w-5 h-5" imgClassName="w-5 h-5" />
           <span className="font-bold text-lg">rlist</span>
         </div>
       </SidebarHeader>

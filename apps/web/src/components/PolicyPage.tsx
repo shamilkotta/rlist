@@ -30,7 +30,7 @@ export function PolicyPage({
             to="/"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
-            <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+            <AppLogo className="w-5 h-5" imgClassName="w-5 h-5" />
             <span>rlist</span>
           </Link>
           <nav className="flex items-center gap-4 text-sm">

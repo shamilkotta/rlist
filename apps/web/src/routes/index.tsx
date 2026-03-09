@@ -186,20 +186,27 @@ function HomeRoute() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-muted">
       {/* Fixed Logo - stays in place while scrolling */}
-      <a
-        href="/"
-        className="fixed left-4 sm:left-6 top-[13.5px] z-80 flex items-center group"
+      <Link
+        to="/"
+        className="fixed left-4 sm:left-6 top-[18.5px] z-80 flex items-center group"
         style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
       >
-        <AppLogo className="w-7 h-7" imgClassName="w-7 h-7" />
-      </a>
+        <AppLogo className="w-5 h-5" imgClassName="w-5 h-5" />
+      </Link>
 
       {/* Header - scrolls away */}
       <header className="z-60 w-full bg-background">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-5">
             {/* Spacer for fixed logo */}
-            <div className="w-3" />
+            <div className="w-1" />
+
+            <Link
+              to="/"
+              className={'text-lg transition-colors whitespace-nowrap text-foreground font-bold'}
+            >
+              rlist
+            </Link>
 
             {/* <nav className="hidden md:flex items-center gap-6">
               {['Dashboard', 'Discover', 'Analytics'].map((item) => (
@@ -474,7 +481,7 @@ function HomeRoute() {
       <footer className="border-t border-border bg-background py-4">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-muted-foreground text-[13px] font-medium">
-            <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+            <AppLogo className="w-4 h-4" imgClassName="w-4 h-4" />
             <span>rlist © {new Date().getFullYear()}</span>
           </div>
 

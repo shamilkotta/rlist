@@ -25,7 +25,7 @@ export function LandingPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <AppLogo className="w-7 h-7" imgClassName="w-7 h-7" />
+              <AppLogo className="w-5 h-5" imgClassName="w-5 h-5" />
               <span className="font-bold text-lg tracking-tight">rlist</span>
             </div>
             {/* Auth Button */}
@@ -245,7 +245,7 @@ export function LandingPage() {
       <footer className="border-t border-slate-200 dark:border-[#333333] py-10 bg-white dark:bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 text-slate-400 dark:text-slate-600">
-            <AppLogo className="w-6 h-6" imgClassName="w-6 h-6" />
+            <AppLogo className="w-4 h-4" imgClassName="w-4 h-4" />
             <span className="text-sm">rlist © {new Date().getFullYear()}</span>
           </div>
           <div className="flex gap-8">

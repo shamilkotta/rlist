@@ -57,7 +57,7 @@ function SignupPage() {
         className="fixed left-4 sm:left-6 top-[17px] z-60 flex items-center group"
         style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
       >
-        <AppLogo className="w-7 h-7" imgClassName="w-7 h-7" />
+        <AppLogo className="w-5 h-5" imgClassName="w-5 h-5" />
       </Link>
 
       <div className="w-full max-w-[400px] space-y-8">
