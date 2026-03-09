@@ -16,13 +16,13 @@ import {
   Linking,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDebounce } from '@/hooks/use-debounce';
 import { authClient } from '@/lib/auth-client';
@@ -247,7 +247,7 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <StatusBar style="light" />
-        <ActivityIndicator size="small" color="#f9fafb" />
+        <ActivityIndicator size="small" color="#ffffff" />
       </SafeAreaView>
     );
   }
@@ -262,7 +262,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View style={styles.brandRow}>
-            <Feather name="folder" size={18} color="#f8fafc" />
+            <Feather name="folder" size={18} color="#ffffff" />
             <Text style={styles.brandText}>rlist</Text>
           </View>
           <Pressable style={styles.avatarButton} onPress={handleSignOut}>
@@ -298,13 +298,13 @@ export default function HomeScreen() {
         <Text style={styles.title}>Your Articles</Text>
 
         <View style={styles.urlInputWrap}>
-          <Feather name="link" size={15} color="#64748b" />
+          <Feather name="link" size={15} color="rgba(255, 255, 255, 0.65)" />
           <TextInput
             value={urlInput}
             onChangeText={setUrlInput}
             style={styles.urlInput}
             placeholder="Paste a URL to save..."
-            placeholderTextColor="#64748b"
+            placeholderTextColor="rgba(255, 255, 255, 0.65)"
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -346,7 +346,7 @@ export default function HomeScreen() {
               {tags.map((tag) => (
                 <Pressable key={tag} style={styles.tagChip} onPress={() => removeTag(tag)}>
                   <Text style={styles.tagChipText}>{tag}</Text>
-                  <Ionicons name="close" size={12} color="#cbd5e1" />
+                  <Ionicons name="close" size={12} color="rgba(255, 255, 255, 0.8)" />
                 </Pressable>
               ))}
 
@@ -357,7 +357,7 @@ export default function HomeScreen() {
                     onChangeText={setTagInput}
                     style={styles.tagInput}
                     placeholder="Tag"
-                    placeholderTextColor="#64748b"
+                    placeholderTextColor="rgba(255, 255, 255, 0.65)"
                     autoCapitalize="characters"
                     maxLength={TAG_MAX_LENGTH}
                   />
@@ -383,7 +383,7 @@ export default function HomeScreen() {
 
         {articlesQuery.isPending ? (
           <View style={styles.loadingList}>
-            <ActivityIndicator size="small" color="#e2e8f0" />
+            <ActivityIndicator size="small" color="rgba(255, 255, 255, 0.9)" />
           </View>
         ) : null}
 
@@ -415,7 +415,11 @@ export default function HomeScreen() {
                 ))}
                 <Text style={styles.articleAge}>{formatRelativeDate(article._creationTime)}</Text>
                 <Pressable onPress={() => setActionTarget(article)} hitSlop={8}>
-                  <Ionicons name="ellipsis-horizontal" size={14} color="#94a3b8" />
+                  <Ionicons
+                    name="ellipsis-horizontal"
+                    size={14}
+                    color="rgba(255, 255, 255, 0.65)"
+                  />
                 </Pressable>
               </View>
             </View>
@@ -495,7 +499,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: '#000000',
   },
   container: {
     flex: 1,
@@ -508,7 +512,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#030712',
+    backgroundColor: '#000000',
   },
   headerRow: {
     marginTop: 8,
@@ -523,7 +527,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   brandText: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 26,
     fontWeight: '700',
   },
@@ -533,10 +537,10 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1f2937',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   avatarButtonText: {
-    color: '#e5e7eb',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -547,31 +551,31 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   primaryNavActive: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 21,
     fontWeight: '600',
   },
   primaryNavMuted: {
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 21,
     fontWeight: '500',
   },
   divider: {
     width: '100%',
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#1e293b',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   filterRow: {
     gap: 18,
     paddingTop: 14,
   },
   filterActive: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
   },
   filterMuted: {
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -579,12 +583,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     height: 2,
     borderRadius: 999,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   title: {
     marginTop: 22,
     marginBottom: 16,
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 44,
     lineHeight: 48,
     fontWeight: '800',
@@ -593,9 +597,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 12,
-    backgroundColor: '#020617',
+    backgroundColor: '#000000',
     paddingLeft: 12,
     paddingRight: 8,
     height: 48,
@@ -603,7 +607,7 @@ const styles = StyleSheet.create({
   },
   urlInput: {
     flex: 1,
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 15,
     paddingVertical: 0,
   },
@@ -611,7 +615,7 @@ const styles = StyleSheet.create({
     height: 32,
     minWidth: 56,
     borderRadius: 8,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
@@ -620,31 +624,31 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   addButtonText: {
-    color: '#e2e8f0',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 13,
     fontWeight: '700',
   },
   metadataCard: {
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 12,
-    backgroundColor: '#020617',
+    backgroundColor: '#000000',
     padding: 12,
     gap: 6,
   },
   metadataDomain: {
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 12,
     fontWeight: '600',
   },
   metadataTitle: {
-    color: '#e2e8f0',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 16,
     fontWeight: '700',
   },
   metadataDescription: {
-    color: '#94a3b8',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 14,
     lineHeight: 18,
   },
@@ -660,13 +664,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   tagChipText: {
-    color: '#cbd5e1',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -679,22 +683,22 @@ const styles = StyleSheet.create({
     width: 96,
     height: 30,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: 8,
     paddingHorizontal: 8,
-    color: '#e2e8f0',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 12,
   },
   tagAddButton: {
     height: 30,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: '#1e293b',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   tagAddButtonText: {
-    color: '#e2e8f0',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -705,13 +709,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   bannerSuccess: {
-    backgroundColor: '#052e16',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
   },
   bannerError: {
-    backgroundColor: '#450a0a',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
   },
   bannerText: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -722,13 +726,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 18,
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 15,
   },
   articleCard: {
     marginTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
     paddingTop: 12,
     gap: 6,
   },
@@ -746,17 +750,17 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 4,
-    backgroundColor: '#1e293b',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   faviconFallbackText: {
-    color: '#cbd5e1',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 10,
     fontWeight: '700',
   },
   articleDomain: {
-    color: '#94a3b8',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -767,79 +771,79 @@ const styles = StyleSheet.create({
   },
   articleTagChip: {
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   articleTagChipText: {
-    color: '#cbd5e1',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 10,
     fontWeight: '700',
   },
   articleAge: {
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 12,
     fontWeight: '500',
   },
   articleTitle: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 33,
     lineHeight: 38,
     fontWeight: '700',
   },
   articleDescription: {
-    color: '#94a3b8',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 16,
     lineHeight: 22,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(2, 6, 23, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
     padding: 16,
   },
   actionSheet: {
     borderRadius: 14,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     overflow: 'hidden',
   },
   actionItem: {
     paddingHorizontal: 14,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#334155',
+    borderBottomColor: 'rgba(255, 255, 255, 0.25)',
   },
   actionItemDanger: {
     borderBottomWidth: 0,
   },
   actionText: {
-    color: '#e2e8f0',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 16,
     fontWeight: '600',
   },
   actionTextDanger: {
-    color: '#fca5a5',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },
   confirmDialog: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#000000',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     padding: 16,
     gap: 10,
   },
   confirmTitle: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
   },
   confirmDescription: {
-    color: '#94a3b8',
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 14,
     lineHeight: 20,
   },
@@ -854,26 +858,26 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
   },
   confirmCancelText: {
-    color: '#cbd5e1',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 14,
     fontWeight: '600',
   },
   confirmDeleteButton: {
     height: 34,
     borderRadius: 8,
-    backgroundColor: '#7f1d1d',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
   },
   confirmDeleteText: {
-    color: '#fee2e2',
+    color: '#000000',
     fontSize: 14,
     fontWeight: '700',
   },

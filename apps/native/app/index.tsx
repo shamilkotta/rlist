@@ -8,7 +8,7 @@ export default function IndexRoute() {
   if (isPending) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#111827" />
+        <ActivityIndicator size="small" color="#ffffff" />
       </View>
     );
   }
@@ -21,6 +21,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#000000',
   },
 });
