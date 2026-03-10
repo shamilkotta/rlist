@@ -37,6 +37,7 @@ export default function SignupScreen() {
   const subtitleColor = useThemeColor({}, 'subtitle');
   const borderColor = useThemeColor({}, 'border');
   const cardColor = useThemeColor({}, 'card');
+  const errorColor = useThemeColor({}, 'error');
 
   const handleSubmit = async () => {
     if (isSubmitting) {
@@ -144,7 +145,9 @@ export default function SignupScreen() {
                 </View>
               </View>
 
-              {error ? <Text style={[styles.errorText, { color: textColor }]}>{error}</Text> : null}
+              {error ? (
+                <Text style={[styles.errorText, { color: errorColor }]}>{error}</Text>
+              ) : null}
 
               <Pressable
                 style={[styles.submitButton, { backgroundColor: textColor }]}
@@ -214,12 +217,14 @@ const styles = StyleSheet.create({
     fontSize: 34,
     lineHeight: 40,
     fontWeight: '800',
+    fontFamily: 'Geist-ExtraBold',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
+    fontFamily: 'Geist',
   },
   form: {
     gap: 20,
@@ -230,6 +235,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: 'Geist-SemiBold',
   },
   input: {
     height: 48,
@@ -237,6 +243,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 14,
     fontSize: 15,
+    fontFamily: 'Geist',
   },
   inputWithIconWrap: {
     height: 48,
@@ -251,6 +258,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     paddingVertical: 0,
+    fontFamily: 'Geist',
   },
   passwordToggleButton: {
     width: 36,
@@ -261,6 +269,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 13,
     fontWeight: '500',
+    fontFamily: 'Geist-Medium',
   },
   submitButton: {
     height: 50,
@@ -272,6 +281,7 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: 15,
     fontWeight: '600',
+    fontFamily: 'Geist-SemiBold',
   },
   footerRow: {
     marginTop: 12,
@@ -281,9 +291,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
+    fontFamily: 'Geist',
   },
   footerLink: {
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: 'Geist-Bold',
   },
 });

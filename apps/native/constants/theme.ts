@@ -21,6 +21,7 @@ export const Colors = {
     subtitle: 'rgba(0, 0, 0, 0.6)',
     grid: 'rgba(0, 0, 0, 0.08)',
     backgroundTransparent: 'rgba(255, 255, 255, 0)',
+    error: '#dc2626',
   },
   dark: {
     text: '#ffffff',
@@ -34,6 +35,7 @@ export const Colors = {
     subtitle: 'rgba(255, 255, 255, 0.7)',
     grid: 'rgba(255, 255, 255, 0.16)',
     backgroundTransparent: 'rgba(0, 0, 0, 0)',
+    error: '#f87171',
   },
 };
 

@@ -1,3 +1,4 @@
+import { expo } from '@better-auth/expo';
 import { createClient } from '@convex-dev/better-auth';
 import type { GenericCtx } from '@convex-dev/better-auth';
 import { convex } from '@convex-dev/better-auth/plugins';
@@ -7,7 +8,14 @@ import type { DataModel } from './_generated/dataModel';
 import { query } from './_generated/server';
 import authConfig from './auth.config';
 
-const siteUrl = process.env.SITE_URL!;
+function requireEnv(value: string | undefined, name: string): string {
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
+const siteUrl = requireEnv(process.env.SITE_URL, 'SITE_URL');
 
 // The component client has methods needed for integrating Convex with Better Auth,
 // as well as helper methods for general use.
@@ -18,11 +26,19 @@ const trustedOrigins =
     .map((origin) => origin.trim())
     .filter(Boolean) ?? [];
 
+const defaultTrustedOrigins = [siteUrl, 'rlist://', 'rlist://*'];
+
+if (process.env.NODE_ENV !== 'production') {
+  defaultTrustedOrigins.push('exp://', 'exp://**');
+}
+
+const allTrustedOrigins = Array.from(new Set([...defaultTrustedOrigins, ...trustedOrigins]));
+
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
   return betterAuth({
     baseURL: siteUrl,
     database: authComponent.adapter(ctx),
-    trustedOrigins,
+    trustedOrigins: allTrustedOrigins,
     // Configure simple, non-verified email/password to get started
     user: {
       changeEmail: {
@@ -34,6 +50,8 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       requireEmailVerification: false,
     },
     plugins: [
+      // The Expo plugin handles mobile-origin behavior for native clients.
+      expo(),
       // The Convex plugin is required for Convex compatibility
       convex({ authConfig }),
     ],

@@ -8,6 +8,13 @@
       "when": 1773046243399,
       "tag": "0000_swift_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773132643399,
+      "tag": "0001_local_first_articles",
+      "breakpoints": true
     }
   ]
 }

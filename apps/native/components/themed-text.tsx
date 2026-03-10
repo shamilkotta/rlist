@@ -37,24 +37,29 @@ const styles = StyleSheet.create({
   default: {
     fontSize: 16,
     lineHeight: 24,
+    fontFamily: 'Geist',
   },
   defaultSemiBold: {
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '600',
+    fontFamily: 'Geist-SemiBold',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     lineHeight: 32,
+    fontFamily: 'Geist-Bold',
   },
   subtitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'Geist-Bold',
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
     color: '#000000',
+    fontFamily: 'Geist',
   },
 });

@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 224" width="224" height="224">
-<g transform="translate(112 112) scale(1.35) translate(-112 -112) translate(0 6.5)">
-    <path
-      fill="#ffffff"
-      d="M60 78c0-8.8 7.2-16 16-16h24l12 12h36c8.8 0 16 7.2 16 16v8H60v-20zm0 20h104v36c0 8.8-7.2 16-16 16H76c-8.8 0-16-7.2-16-16V98z"
-    />
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 54 104 104" width="104" height="104">
+  <path
+    fill="#ffffff"
+    d="M60 78c0-8.8 7.2-16 16-16h24l12 12h36c8.8 0 16 7.2 16 16v8H60v-20zm0 20h104v36c0 8.8-7.2 16-16 16H76c-8.8 0-16-7.2-16-16V98z"
+  />
 </svg>
