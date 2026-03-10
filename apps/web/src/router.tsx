@@ -6,12 +6,16 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
+function requireEnv(value: string | undefined, name: string): string {
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
 // Create a new router instance
 export const getRouter = () => {
-  const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL!;
-  if (!CONVEX_URL) {
-    console.error('missing envar VITE_CONVEX_URL');
-  }
+  const CONVEX_URL = requireEnv(import.meta.env.VITE_CONVEX_URL, 'VITE_CONVEX_URL');
 
   const convexQueryClient = new ConvexQueryClient(CONVEX_URL, {
     expectAuth: true,

@@ -4,16 +4,16 @@ import { useState } from 'react';
 import { AppLogo } from '@/components/AppLogo';
 import { ModeToggle } from '@/components/mode-toggle';
 import { setPendingArticleUrl } from '@/lib/pending-article';
-import { isValidUrl, normalizeUrl } from '@/lib/url';
+import { validateArticleUrl } from '@/lib/url';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const [urlInput, setUrlInput] = useState('');
 
   const handleSave = () => {
-    const trimmed = urlInput.trim();
-    if (trimmed && isValidUrl(trimmed)) {
-      setPendingArticleUrl(normalizeUrl(trimmed));
+    const validated = validateArticleUrl(urlInput);
+    if (validated) {
+      setPendingArticleUrl(validated);
     }
     navigate({ to: '/signup' });
   };

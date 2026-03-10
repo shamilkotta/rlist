@@ -5,6 +5,54 @@ import type { Id } from './_generated/dataModel';
 import { action, internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { authComponent } from './auth';
 
+const FETCH_TIMEOUT_MS = 10_000;
+const FETCH_MAX_BODY_BYTES = 5 * 1024 * 1024; // 5MB
+
+const ALLOWED_PORTS = new Set([80, 443]);
+const PRIVATE_IP_PATTERNS = [
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^localhost$/i,
+  /^\[::1\]$/,
+  /^\[fe80:/i,
+];
+
+function isPrivateOrReservedHost(hostname: string): boolean {
+  const lower = hostname.toLowerCase();
+  if (lower === 'localhost' || lower.endsWith('.localhost')) return true;
+  if (lower === '169.254.169.254') return true; // cloud metadata
+  for (const pattern of PRIVATE_IP_PATTERNS) {
+    if (pattern.test(hostname)) return true;
+  }
+  return false;
+}
+
+const BLOCKED_SCHEMES = /^(javascript|file|data|vbscript):/i;
+
+export function validateAndNormalizeArticleUrl(input: string): string | null {
+  const trimmed = input.trim().replace(/\/+$/, '');
+  if (!trimmed) return null;
+  if (BLOCKED_SCHEMES.test(trimmed)) return null;
+
+  let url: URL;
+  try {
+    const toParse = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    url = new URL(toParse);
+  } catch {
+    return null;
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+  const portNum = url.port ? Number.parseInt(url.port, 10) : url.protocol === 'https:' ? 443 : 80;
+  if (!Number.isNaN(portNum) && !ALLOWED_PORTS.has(portNum)) return null;
+  if (isPrivateOrReservedHost(url.hostname)) return null;
+
+  return url.href;
+}
+
 function extractMetaContent(html: string, property: string): string | null {
   const patterns = [
     new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']*)["']`, 'i'),
@@ -35,12 +83,6 @@ function extractDescription(html: string): string | null {
   );
 }
 
-export function normalizeUrl(url: string): string {
-  const trimmed = url.trim().replace(/\/+$/, '');
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
-}
-
 type FetchMetadataResult = {
   title: string | null;
   description: string | null;
@@ -49,7 +91,24 @@ type FetchMetadataResult = {
 };
 
 const TAG_MAX_LENGTH = 15;
+const MAX_USER_TAGS = 2;
 const MAX_FILTER_TAGS = 12;
+
+function normalizeUserTags(tags: string[]): string[] {
+  const normalized = [...new Set(tags.map((t) => t.trim().toUpperCase()).filter(Boolean))].slice(
+    0,
+    MAX_USER_TAGS
+  );
+  for (const tag of normalized) {
+    if (tag.length > TAG_MAX_LENGTH) {
+      throw new ConvexError({
+        code: 'TAG_TOO_LONG',
+        message: 'Each tag must be at most 15 characters',
+      });
+    }
+  }
+  return normalized;
+}
 
 function normalizeTagFilters(tags: string[]): string[] {
   return [...new Set(tags.map((tag) => tag.trim().toUpperCase()).filter(Boolean))]
@@ -73,10 +132,24 @@ export const fetchMetadata = action({
     faviconUrl: v.string(),
     domain: v.string(),
   }),
-  handler: async (_ctx, args) => {
-    const normalizedUrl = normalizeUrl(args.url);
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new ConvexError({
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required',
+      });
+    }
 
-    const existingArticle = (await _ctx.runQuery(internal.articles.getArticleByUrl, {
+    const normalizedUrl = validateAndNormalizeArticleUrl(args.url);
+    if (!normalizedUrl) {
+      throw new ConvexError({
+        code: 'INVALID_URL',
+        message: 'Invalid URL',
+      });
+    }
+
+    const existingArticle = (await ctx.runQuery(internal.articles.getArticleByUrl, {
       url: normalizedUrl,
     })) as FetchMetadataResult | null;
 
@@ -101,34 +174,60 @@ const metadataValidator = v.object({
 });
 
 async function fetchMetadataForUrl(url: string) {
-  const fullUrl = normalizeUrl(url);
   let domain: string;
   try {
-    domain = new URL(fullUrl).hostname;
+    domain = new URL(url).hostname;
   } catch {
     return {
       title: null,
       description: null,
-      faviconUrl: `https://www.google.com/s2/favicons?domain=${url}&sz=32`,
+      faviconUrl: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(url)}&sz=32`,
       domain: url,
     };
   }
 
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
-    const response = await fetch(fullUrl, {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; RListBot/1.0; +https://rlist.app)',
         Accept: 'text/html',
       },
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
       return { title: null, description: null, faviconUrl, domain };
     }
 
-    const html = await response.text();
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.toLowerCase().includes('text/html')) {
+      return { title: null, description: null, faviconUrl, domain };
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      return { title: null, description: null, faviconUrl, domain };
+    }
+
+    let html = '';
+    let totalBytes = 0;
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > FETCH_MAX_BODY_BYTES) break;
+      html += decoder.decode(value, { stream: true });
+    }
+
     const title = extractTitle(html);
     const description = extractDescription(html);
 
@@ -153,10 +252,9 @@ export const getArticleByUrl = internalQuery({
     v.null()
   ),
   handler: async (ctx, args) => {
-    const normalizedUrl = normalizeUrl(args.url);
     return await ctx.db
       .query('articles')
-      .withIndex('by_url', (q) => q.eq('url', normalizedUrl))
+      .withIndex('by_url', (q) => q.eq('url', args.url))
       .unique();
   },
 });
@@ -173,17 +271,15 @@ export const addArticleInternal = internalMutation({
     userArticleId: v.id('userArticles'),
   }),
   handler: async (ctx, args) => {
-    const normalizedUrl = normalizeUrl(args.url);
-
     const article = await ctx.db
       .query('articles')
-      .withIndex('by_url', (q) => q.eq('url', normalizedUrl))
+      .withIndex('by_url', (q) => q.eq('url', args.url))
       .unique();
 
     let articleId: Id<'articles'>;
     if (!article) {
       articleId = await ctx.db.insert('articles', {
-        url: normalizedUrl,
+        url: args.url,
         title: args.metadata.title,
         description: args.metadata.description,
         faviconUrl: args.metadata.faviconUrl,
@@ -241,7 +337,7 @@ export const addArticle = action({
     }
 
     const userId = user._id.toString();
-    const normalizedUrl = normalizeUrl(args.url);
+    const normalizedUrl = validateAndNormalizeArticleUrl(args.url);
 
     if (!normalizedUrl) {
       throw new ConvexError({
@@ -250,18 +346,7 @@ export const addArticle = action({
       });
     }
 
-    const tags = args.tags
-      .map((t) => t.trim().toUpperCase())
-      .filter(Boolean)
-      .slice(0, 2);
-    for (const tag of tags) {
-      if (tag.length > 15) {
-        throw new ConvexError({
-          code: 'TAG_TOO_LONG',
-          message: 'Each tag must be at most 15 characters',
-        });
-      }
-    }
+    const tags = normalizeUserTags(args.tags);
 
     const existingArticle = await ctx.runQuery(internal.articles.getArticleByUrl, {
       url: normalizedUrl,
@@ -308,19 +393,7 @@ export const updateArticleTags = mutation({
       });
     }
 
-    const tags = [...new Set(args.tags.map((t) => t.trim().toUpperCase()).filter(Boolean))].slice(
-      0,
-      2
-    );
-    for (const tag of tags) {
-      if (tag.length > 15) {
-        throw new ConvexError({
-          code: 'TAG_TOO_LONG',
-          message: 'Each tag must be at most 15 characters',
-        });
-      }
-    }
-
+    const tags = normalizeUserTags(args.tags);
     const userId = user._id.toString();
     const userArticle = await ctx.db
       .query('userArticles')

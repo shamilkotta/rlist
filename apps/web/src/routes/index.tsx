@@ -1,48 +1,22 @@
 import { AppLogo } from '@/components/AppLogo';
 import { LandingPage } from '@/components/LandingPage';
+import { UserAccountMenu } from '@/components/UserAccountMenu';
 import { ModeToggle } from '@/components/mode-toggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { usePaginatedQuery } from '@/hooks/use-paginated-articles';
+import { usePendingArticleRecovery } from '@/hooks/use-pending-article-recovery';
 import { mapArticlesForDisplay } from '@/lib/article';
 import { authClient } from '@/lib/auth-client';
-import {
-  clearPendingArticleUrl,
-  getPendingArticleUrl,
-  setPendingArticleUrl,
-} from '@/lib/pending-article';
+import { normalizeTags, toTagsSearchParam } from '@/lib/tags';
 import { cn } from '@/lib/utils';
-import { convexQuery, useConvexAction } from '@convex-dev/react-query';
+import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
-import { ConvexError } from 'convex/values';
 import { motion } from 'framer-motion';
-import {
-  BadgeCheck,
-  Bell,
-  ChevronDown,
-  CreditCard,
-  LayoutGrid,
-  List,
-  LoaderCircle,
-  LogOut,
-  Sparkles,
-  TextAlignEnd,
-  X,
-} from 'lucide-react';
+import { ChevronDown, LayoutGrid, List, LoaderCircle, TextAlignEnd, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { ArticleCard, ArticleCardSkeleton } from '../components/ArticleCard';
 import { ArticleListItem, ArticleListItemSkeleton } from '../components/ArticleListItem';
 import { PasteInput } from '../components/PasteInput';
@@ -57,8 +31,6 @@ const SKELETON_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'];
 const VIEW_MODE_STORAGE_KEY = 'rlist:view-mode';
 const ARTICLE_PAGE_SIZE = 24;
 const DEFAULT_VIEW_MODE: ViewMode = 'grid';
-const TAG_MAX_LENGTH = 15;
-const MAX_FILTER_TAGS = 12;
 
 const TABS: { label: string; value: TabFilter }[] = [
   { label: 'Unread', value: 'unread' },
@@ -71,31 +43,6 @@ const TAB_HEADINGS: Record<TabFilter, string> = {
   all: 'All Articles',
   archive: 'Archived Articles',
 };
-
-function normalizeTags(rawTags: unknown): string[] {
-  if (!rawTags) {
-    return [];
-  }
-
-  const tagValues =
-    typeof rawTags === 'string'
-      ? rawTags.split(',')
-      : Array.isArray(rawTags)
-        ? rawTags.flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
-        : [];
-
-  return [...new Set(tagValues.map((tag) => tag.trim().toUpperCase()).filter(Boolean))]
-    .filter((tag) => tag.length <= TAG_MAX_LENGTH)
-    .slice(0, MAX_FILTER_TAGS);
-}
-
-function toTagsSearchParam(tags: string[]): string[] | undefined {
-  if (tags.length === 0) {
-    return undefined;
-  }
-
-  return tags;
-}
 
 export const Route = createFileRoute('/')({
   component: HomeRoute,
@@ -148,6 +95,7 @@ function HomeRoute() {
 
   const { data: availableTags = [] } = useQuery({
     ...convexQuery(api.articles.listUserTags, { filter: activeTab }),
+    enabled: isAuthenticated,
   });
 
   const toggleTagFilter = (tag: string) => {
@@ -231,82 +179,7 @@ function HomeRoute() {
             {!isPending &&
               (session ? (
                 <div className="flex items-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="hidden md:flex w-8 h-8 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-medium hover:opacity-90 transition-opacity overflow-hidden ring-1 ring-border cursor-pointer"
-                      >
-                        <Avatar className="h-8 w-8 rounded-full">
-                          <AvatarImage
-                            src={session.user.image ?? ''}
-                            alt={session.user.name ?? ''}
-                          />
-                          <AvatarFallback className="rounded-full">
-                            {session.user.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56 rounded-lg" align="end" sideOffset={8}>
-                      <DropdownMenuLabel className="p-0 font-normal">
-                        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                          <Avatar className="h-8 w-8 rounded-lg">
-                            <AvatarImage
-                              src={session.user.image ?? ''}
-                              alt={session.user.name ?? ''}
-                            />
-                            <AvatarFallback className="rounded-lg">
-                              {session.user.name?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-semibold">{session.user.name}</span>
-                            <span className="truncate text-xs text-muted-foreground">
-                              {session.user.email}
-                            </span>
-                          </div>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                          <Sparkles className="mr-2 h-4 w-4 text-primary" />
-                          Upgrade to Pro
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                          <BadgeCheck className="mr-2 h-4 w-4" />
-                          Account
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Billing
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Bell className="mr-2 h-4 w-4" />
-                          Notifications
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() =>
-                          authClient.signOut({
-                            fetchOptions: {
-                              onSuccess: () => {
-                                location.reload();
-                              },
-                            },
-                          })
-                        }
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Log out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <UserAccountMenu session={session} />
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -523,8 +396,7 @@ function ArticlesList({
     loadMore,
   } = usePaginatedQuery({ filter: activeTab, tags: selectedTags, pageSize: ARTICLE_PAGE_SIZE });
 
-  const addArticleMutationFn = useConvexAction(api.articles.addArticle);
-  const addArticleMutation = useMutation({ mutationFn: addArticleMutationFn });
+  usePendingArticleRecovery();
 
   const isInitialArticlesLoading = paginationStatus === 'LoadingFirstPage';
   const canLoadMore = paginationStatus === 'CanLoadMore';
@@ -537,29 +409,6 @@ function ArticlesList({
 
     loadMore(ARTICLE_PAGE_SIZE);
   }
-
-  useEffect(() => {
-    const pendingUrl = getPendingArticleUrl();
-    if (!pendingUrl) return;
-    clearPendingArticleUrl();
-    addArticleMutation.mutate(
-      { url: pendingUrl, tags: [] },
-      {
-        onSuccess: () => toast.success('Article added'),
-        onError: (err) => {
-          if (
-            err instanceof ConvexError &&
-            'code' in err.data &&
-            err.data.code === 'ALREADY_SAVED_ARTICLE'
-          ) {
-            return;
-          }
-          toast.error(err instanceof ConvexError ? err.data.message : 'Failed to add article');
-          setPendingArticleUrl(pendingUrl);
-        },
-      }
-    );
-  }, [addArticleMutation]);
 
   const articles = mapArticlesForDisplay(allUserArticles);
 

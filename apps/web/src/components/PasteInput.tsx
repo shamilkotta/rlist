@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useClickOutside } from '@/hooks/use-click-outside';
 import { useDebounce } from '@/hooks/use-debounce';
-import { getDomain, isValidUrl } from '@/lib/url';
+import { getDomain, isValidUrl, validateArticleUrl } from '@/lib/url';
 import { convexAction, useConvexAction } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -84,11 +84,13 @@ export function PasteInput() {
   };
 
   const handleSubmit = () => {
-    if (!isValidUrl(urlInput)) return;
+    const urlToSubmit = debouncedUrl || urlInput;
+    const validated = validateArticleUrl(urlToSubmit);
+    if (!validated) return;
 
     addArticleMutation.mutate(
       {
-        url: debouncedUrl || urlInput,
+        url: validated,
         tags,
       },
       {
