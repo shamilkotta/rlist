@@ -1,6 +1,5 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import type { Id } from '@rlist/api/convex/_generated/dataModel';
 import { useQueries } from '@tanstack/react-query';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -8,37 +7,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   addOutboxItem,
   buildFeedQuery,
-  getPendingOutboxItems,
   markLocallyDeleted,
-  markOutboxFailed,
-  markOutboxProcessed,
-  removeDeletedArticle,
   resetPaginationForFilter,
   toggleLocalArchiveStatus,
   toggleLocalReadStatus,
   upsertServerPage,
 } from '@/db/repositories/articles';
 import type { CachedArticle } from '@/db/schema';
-import { convexQueryClient } from '@/lib/convex';
+import { useArticleOutboxSync } from '@/hooks/use-article-outbox-sync';
 
-export type TabFilter = 'unread' | 'all' | 'archive';
-export type PaginationStatus = 'LoadingFirstPage' | 'CanLoadMore' | 'LoadingMore' | 'Exhausted';
+import type { DisplayArticle, PaginationStatus, TabFilter } from '@/features/home/home-feed.types';
 
-export type DisplayArticle = {
-  articleId: string;
-  url: string;
-  title: string | null;
-  description: string | null;
-  domain: string;
-  faviconUrl: string;
-  tags: string[];
-  isRead: boolean;
-  isArchived: boolean;
-  creationTime: number;
-};
+export type { DisplayArticle, PaginationStatus, TabFilter };
 
 const PAGE_SIZE = 24;
-const OUTBOX_FLUSH_INTERVAL = 30_000;
 
 function toDisplayArticle(row: CachedArticle): DisplayArticle {
   return {
@@ -59,7 +41,7 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   const [loadedCursors, setLoadedCursors] = useState<Array<string | null>>([null]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const pendingPagesToLoadRef = useRef(0);
-  const isFlushingRef = useRef(false);
+  const { flushOutboxNow } = useArticleOutboxSync(userId);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset must fire when filter changes
   useEffect(() => {
@@ -178,56 +160,13 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   }, [pageQueries, localArticles, isLoadingMore]);
 
   // ---------------------------------------------------------------------------
-  // Outbox flush — sends queued mutations to Convex
-  // ---------------------------------------------------------------------------
-  const flushOutboxNow = useCallback(async () => {
-    if (isFlushingRef.current) return;
-    isFlushingRef.current = true;
-    try {
-      const items = await getPendingOutboxItems();
-      const client = convexQueryClient.convexClient;
-
-      for (const item of items) {
-        try {
-          const id = item.articleId as Id<'articles'>;
-          switch (item.action) {
-            case 'toggleReadStatus':
-              await client.mutation(api.articles.toggleReadStatus, { articleId: id });
-              break;
-            case 'toggleArchiveStatus':
-              await client.mutation(api.articles.toggleArchiveStatus, { articleId: id });
-              break;
-            case 'deleteArticle':
-              await client.mutation(api.articles.deleteArticle, { articleId: id });
-              break;
-          }
-          await markOutboxProcessed(item.id);
-          if (item.action === 'deleteArticle') {
-            await removeDeletedArticle(item.articleId);
-          }
-        } catch {
-          await markOutboxFailed(item.id);
-        }
-      }
-    } finally {
-      isFlushingRef.current = false;
-    }
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => void flushOutboxNow(), OUTBOX_FLUSH_INTERVAL);
-    void flushOutboxNow();
-    return () => clearInterval(interval);
-  }, [flushOutboxNow]);
-
-  // ---------------------------------------------------------------------------
   // Action handlers — optimistic local update + outbox enqueue
   // ---------------------------------------------------------------------------
   const toggleRead = useCallback(
     async (articleId: string) => {
       if (!userId) return;
       await toggleLocalReadStatus(articleId, userId);
-      await addOutboxItem('toggleReadStatus', articleId);
+      await addOutboxItem('toggleReadStatus', articleId, userId);
       void flushOutboxNow();
     },
     [userId, flushOutboxNow]
@@ -237,7 +176,7 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
     async (articleId: string) => {
       if (!userId) return;
       await toggleLocalArchiveStatus(articleId, userId);
-      await addOutboxItem('toggleArchiveStatus', articleId);
+      await addOutboxItem('toggleArchiveStatus', articleId, userId);
       void flushOutboxNow();
     },
     [userId, flushOutboxNow]
@@ -247,7 +186,7 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
     async (articleId: string) => {
       if (!userId) return;
       await markLocallyDeleted(articleId, userId);
-      await addOutboxItem('deleteArticle', articleId);
+      await addOutboxItem('deleteArticle', articleId, userId);
       void flushOutboxNow();
     },
     [userId, flushOutboxNow]
@@ -257,11 +196,12 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   // Refresh (pull-to-refresh)
   // ---------------------------------------------------------------------------
   const refresh = useCallback(() => {
-    void resetPaginationForFilter(filter);
+    if (!userId) return;
+    void resetPaginationForFilter(filter, userId);
     setLoadedCursors([null]);
     setIsLoadingMore(false);
     pendingPagesToLoadRef.current = 0;
-  }, [filter]);
+  }, [filter, userId]);
 
   // ---------------------------------------------------------------------------
   // Result

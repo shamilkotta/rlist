@@ -15,6 +15,13 @@
       "when": 1773132643399,
       "tag": "0001_local_first_articles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773150396040,
+      "tag": "0002_overjoyed_virginia_dare",
+      "breakpoints": true
     }
   ]
 }

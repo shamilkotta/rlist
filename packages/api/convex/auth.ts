@@ -23,7 +23,7 @@ export const authComponent = createClient<DataModel>(components.betterAuth);
 
 const trustedOrigins =
   process.env.TRUSTED_ORIGINS?.split(',')
-    .map((origin) => origin.trim())
+    .map((origin: string) => origin.trim())
     .filter(Boolean) ?? [];
 
 const defaultTrustedOrigins = [siteUrl, 'rlist://', 'rlist://*'];

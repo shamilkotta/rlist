@@ -57,19 +57,23 @@ export async function upsertServerPage(
     await db
       .insert(paginationState)
       .values({
+        userId,
         filter,
         continueCursor,
         isDone: isDone ? 1 : 0,
         lastSyncedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: paginationState.filter,
+        target: [paginationState.userId, paginationState.filter],
         set: { continueCursor, isDone: isDone ? 1 : 0, lastSyncedAt: Date.now() },
       });
     return;
   }
 
-  const pendingItems = await db.select().from(syncOutbox).where(eq(syncOutbox.status, 'pending'));
+  const pendingItems = await db
+    .select()
+    .from(syncOutbox)
+    .where(and(eq(syncOutbox.userId, userId), eq(syncOutbox.status, 'pending')));
 
   const pendingDeleteIds = new Set(
     pendingItems.filter((i) => i.action === 'deleteArticle').map((i) => i.articleId)
@@ -122,13 +126,14 @@ export async function upsertServerPage(
   await db
     .insert(paginationState)
     .values({
+      userId,
       filter,
       continueCursor,
       isDone: isDone ? 1 : 0,
       lastSyncedAt: Date.now(),
     })
     .onConflictDoUpdate({
-      target: paginationState.filter,
+      target: [paginationState.userId, paginationState.filter],
       set: { continueCursor, isDone: isDone ? 1 : 0, lastSyncedAt: Date.now() },
     });
 }
@@ -170,15 +175,19 @@ export async function markLocallyDeleted(articleId: string, userId: string) {
     .where(and(eq(cachedArticles.articleId, articleId), eq(cachedArticles.userId, userId)));
 }
 
-export async function removeDeletedArticle(articleId: string) {
-  await db.delete(cachedArticles).where(eq(cachedArticles.articleId, articleId));
+export async function removeDeletedArticle(articleId: string, userId: string) {
+  await db
+    .delete(cachedArticles)
+    .where(and(eq(cachedArticles.articleId, articleId), eq(cachedArticles.userId, userId)));
 }
 
 export async function addOutboxItem(
   action: 'toggleReadStatus' | 'toggleArchiveStatus' | 'deleteArticle',
-  articleId: string
+  articleId: string,
+  userId: string
 ) {
   await db.insert(syncOutbox).values({
+    userId,
     action,
     articleId,
     status: 'pending',
@@ -187,11 +196,17 @@ export async function addOutboxItem(
   });
 }
 
-export async function getPendingOutboxItems(): Promise<SyncOutboxItem[]> {
+export async function getPendingOutboxItems(userId: string): Promise<SyncOutboxItem[]> {
   return db
     .select()
     .from(syncOutbox)
-    .where(and(eq(syncOutbox.status, 'pending'), lt(syncOutbox.retryCount, MAX_RETRIES)))
+    .where(
+      and(
+        eq(syncOutbox.userId, userId),
+        eq(syncOutbox.status, 'pending'),
+        lt(syncOutbox.retryCount, MAX_RETRIES)
+      )
+    )
     .orderBy(syncOutbox.createdAt);
 }
 
@@ -216,12 +231,14 @@ export async function markOutboxFailed(id: number) {
   }
 }
 
-export async function resetPaginationForFilter(filter: TabFilter) {
-  await db.delete(paginationState).where(eq(paginationState.filter, filter));
+export async function resetPaginationForFilter(filter: TabFilter, userId: string) {
+  await db
+    .delete(paginationState)
+    .where(and(eq(paginationState.filter, filter), eq(paginationState.userId, userId)));
 }
 
 export async function clearLocalData(userId: string) {
   await db.delete(cachedArticles).where(eq(cachedArticles.userId, userId));
-  await db.delete(paginationState);
-  await db.delete(syncOutbox);
+  await db.delete(paginationState).where(eq(paginationState.userId, userId));
+  await db.delete(syncOutbox).where(eq(syncOutbox.userId, userId));
 }

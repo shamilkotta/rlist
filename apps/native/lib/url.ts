@@ -1,3 +1,16 @@
+import { Linking } from 'react-native';
+
+const ALLOWED_SCHEMES = ['http:', 'https:'];
+
+export function isSafeWebUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_SCHEMES.includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
 export function normalizeUrl(url: string): string {
   const trimmed = url.trim().replace(/\/+$/, '');
   if (!trimmed) {
@@ -36,4 +49,17 @@ export function getDomain(url: string): string {
   } catch {
     return normalized;
   }
+}
+
+export async function openSafeUrl(url: string): Promise<boolean> {
+  const normalized = normalizeUrl(url);
+  if (!normalized || !isSafeWebUrl(normalized)) {
+    return false;
+  }
+  const canOpen = await Linking.canOpenURL(normalized);
+  if (canOpen) {
+    void Linking.openURL(normalized);
+    return true;
+  }
+  return false;
 }

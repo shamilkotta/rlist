@@ -32,13 +32,18 @@ export const cachedArticles = sqliteTable(
 
 export type CachedArticle = typeof cachedArticles.$inferSelect;
 
-export const paginationState = sqliteTable('pagination_state', {
-  id: int().primaryKey({ autoIncrement: true }),
-  filter: text().notNull().unique(),
-  continueCursor: text(),
-  isDone: int().notNull().default(0),
-  lastSyncedAt: real(),
-});
+export const paginationState = sqliteTable(
+  'pagination_state',
+  {
+    id: int().primaryKey({ autoIncrement: true }),
+    userId: text().notNull(),
+    filter: text().notNull(),
+    continueCursor: text(),
+    isDone: int().notNull().default(0),
+    lastSyncedAt: real(),
+  },
+  (table) => [uniqueIndex('pagination_state_user_filter').on(table.userId, table.filter)]
+);
 
 export type PaginationState = typeof paginationState.$inferSelect;
 
@@ -46,6 +51,7 @@ export const syncOutbox = sqliteTable(
   'sync_outbox',
   {
     id: int().primaryKey({ autoIncrement: true }),
+    userId: text().notNull(),
     action: text().notNull(),
     articleId: text().notNull(),
     status: text().notNull().default('pending'),
@@ -53,7 +59,7 @@ export const syncOutbox = sqliteTable(
     createdAt: real().notNull(),
     processedAt: real(),
   },
-  (table) => [index('sync_outbox_status').on(table.status)]
+  (table) => [index('sync_outbox_user_status').on(table.userId, table.status)]
 );
 
 export type SyncOutboxItem = typeof syncOutbox.$inferSelect;

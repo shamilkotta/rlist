@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react';
 
+import { Colors } from '@/constants/theme';
+
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface ThemeContextType {
@@ -16,4 +18,9 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
+}
+
+export function useAppColors() {
+  const { colorScheme } = useTheme();
+  return Colors[colorScheme];
 }
