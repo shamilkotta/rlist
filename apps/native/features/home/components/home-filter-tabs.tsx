@@ -69,12 +69,12 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   filterActive: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     fontFamily: 'Geist-Bold',
   },
   filterMuted: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     fontFamily: 'Geist-SemiBold',
   },

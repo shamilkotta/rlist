@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
 import {
@@ -30,6 +31,7 @@ type HomeListItem =
   | { type: 'article'; article: DisplayArticle };
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
   const { colorScheme } = useTheme();
   const c = useAppColors();
@@ -132,8 +134,14 @@ export default function HomeScreen() {
   );
 
   const renderHeader = useCallback(
-    () => <HomeHeader userName={session?.user?.name} onSignOut={handleSignOut} />,
-    [session?.user?.name, handleSignOut]
+    () => (
+      <HomeHeader
+        userName={session?.user?.name}
+        onSignOut={handleSignOut}
+        onPressSearch={() => router.push('/search')}
+      />
+    ),
+    [session?.user?.name, handleSignOut, router]
   );
 
   const renderFooter = useCallback(() => {

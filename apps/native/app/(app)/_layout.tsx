@@ -18,7 +18,17 @@ export default function AppLayout() {
     return <Redirect href={'/login' as never} />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="home" />
+      <Stack.Screen
+        name="search"
+        options={{
+          animation: 'fade_from_bottom',
+        }}
+      />
+    </Stack>
+  );
 }
 
 const styles = StyleSheet.create({

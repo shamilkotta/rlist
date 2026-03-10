@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import LogoDark from '@/assets/images/logo-dark.svg';
@@ -7,9 +8,10 @@ import { useAppColors, useTheme } from '@/hooks/use-theme';
 type HomeHeaderProps = {
   userName?: string | null;
   onSignOut: () => void;
+  onPressSearch: () => void;
 };
 
-export function HomeHeader({ userName, onSignOut }: HomeHeaderProps) {
+export function HomeHeader({ userName, onSignOut, onPressSearch }: HomeHeaderProps) {
   const { colorScheme } = useTheme();
   const c = useAppColors();
 
@@ -24,6 +26,9 @@ export function HomeHeader({ userName, onSignOut }: HomeHeaderProps) {
         <Text style={[styles.brandText, { color: c.text }]}>rlist</Text>
       </View>
       <View style={styles.headerRight}>
+        <Pressable onPress={onPressSearch} hitSlop={8}>
+          <Feather name="search" size={18} color={c.text} />
+        </Pressable>
         <Pressable
           style={[styles.avatarButton, { backgroundColor: c.subtitle }]}
           onPress={onSignOut}
