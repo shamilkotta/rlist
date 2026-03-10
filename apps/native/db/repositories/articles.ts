@@ -84,6 +84,9 @@ export async function upsertServerPage(
   const pendingArchiveIds = new Set(
     pendingItems.filter((i) => i.action === 'toggleArchiveStatus').map((i) => i.articleId)
   );
+  const pendingUpdateTagsIds = new Set(
+    pendingItems.filter((i) => i.action === 'updateTags').map((i) => i.articleId)
+  );
 
   for (const item of items) {
     if (pendingDeleteIds.has(item.articleId)) continue;
@@ -118,6 +121,7 @@ export async function upsertServerPage(
           ...baseFields,
           ...(pendingReadIds.has(item.articleId) ? {} : { isRead }),
           ...(pendingArchiveIds.has(item.articleId) ? {} : { isArchived }),
+          ...(pendingUpdateTagsIds.has(item.articleId) ? {} : { tags }),
           isLocallyDeleted: 0,
         },
       });
@@ -168,6 +172,14 @@ export async function toggleLocalArchiveStatus(articleId: string, userId: string
     .where(and(eq(cachedArticles.articleId, articleId), eq(cachedArticles.userId, userId)));
 }
 
+export async function updateLocalTags(articleId: string, userId: string, tags: string[]) {
+  const tagsJson = JSON.stringify(tags);
+  await db
+    .update(cachedArticles)
+    .set({ tags: tagsJson })
+    .where(and(eq(cachedArticles.articleId, articleId), eq(cachedArticles.userId, userId)));
+}
+
 export async function markLocallyDeleted(articleId: string, userId: string) {
   await db
     .update(cachedArticles)
@@ -181,15 +193,23 @@ export async function removeDeletedArticle(articleId: string, userId: string) {
     .where(and(eq(cachedArticles.articleId, articleId), eq(cachedArticles.userId, userId)));
 }
 
+export type OutboxAction =
+  | 'toggleReadStatus'
+  | 'toggleArchiveStatus'
+  | 'deleteArticle'
+  | 'updateTags';
+
 export async function addOutboxItem(
-  action: 'toggleReadStatus' | 'toggleArchiveStatus' | 'deleteArticle',
+  action: OutboxAction,
   articleId: string,
-  userId: string
+  userId: string,
+  payload?: string
 ) {
   await db.insert(syncOutbox).values({
     userId,
     action,
     articleId,
+    payload: payload ?? null,
     status: 'pending',
     retryCount: 0,
     createdAt: Date.now(),

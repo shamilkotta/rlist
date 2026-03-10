@@ -48,8 +48,8 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 22,
     marginBottom: 16,
-    fontSize: 34,
-    lineHeight: 40,
+    fontSize: 24,
+    lineHeight: 30,
     fontWeight: '800',
     fontFamily: 'Geist-ExtraBold',
   },

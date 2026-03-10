@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   title: {
-    fontSize: 34,
-    lineHeight: 40,
+    fontSize: 24,
+    lineHeight: 30,
     fontWeight: '800',
     fontFamily: 'Geist-ExtraBold',
     textAlign: 'center',

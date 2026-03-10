@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -6,6 +6,8 @@ import type { DisplayArticle } from '@/features/home/home-feed.types';
 import { useAppColors } from '@/hooks/use-theme';
 import { formatRelativeDate } from '@/lib/date';
 import { openSafeUrl } from '@/lib/url';
+
+import { TagEditor } from './tag-editor';
 
 const ARTICLE_SEPARATOR_DASH_KEYS: string[] = Array.from(
   { length: 36 },
@@ -15,59 +17,61 @@ const ARTICLE_SEPARATOR_DASH_KEYS: string[] = Array.from(
 type ArticleCardProps = {
   article: DisplayArticle;
   onOpenActions: (article: DisplayArticle) => void;
+  onUpdateTags: (articleId: string, tags: string[]) => void;
 };
 
-export function ArticleCard({ article, onOpenActions }: ArticleCardProps) {
+export function ArticleCard({ article, onOpenActions, onUpdateTags }: ArticleCardProps) {
   const c = useAppColors();
-  const primaryTag = article.tags[0] ?? 'tags';
 
   return (
     <View style={styles.articleItem}>
-      <Pressable style={styles.articleCard} onPress={() => void openSafeUrl(article.url)}>
-        <View style={styles.articleHeader}>
-          <View style={styles.articleSiteRow}>
-            <View style={[styles.faviconContainer, { backgroundColor: c.border }]}>
-              <Text style={[styles.faviconFallbackText, { color: c.subtitle }]}>
-                {article.domain.charAt(0).toUpperCase()}
-              </Text>
-              <Image
-                source={{ uri: article.faviconUrl }}
-                style={StyleSheet.absoluteFillObject}
-                contentFit="contain"
-              />
+      <View style={styles.articleCard}>
+        <Pressable onPress={() => void openSafeUrl(article.url)}>
+          <View style={styles.articleContent}>
+            <View style={styles.articleHeader}>
+              <View style={styles.articleSiteRow}>
+                <View style={[styles.faviconContainer, { backgroundColor: c.border }]}>
+                  <Text style={[styles.faviconFallbackText, { color: c.subtitle }]}>
+                    {article.domain.charAt(0).toUpperCase()}
+                  </Text>
+                  <Image
+                    source={{ uri: article.faviconUrl }}
+                    style={StyleSheet.absoluteFillObject}
+                    contentFit="contain"
+                  />
+                </View>
+                <Text style={[styles.articleDomain, { color: c.subtitle }]} numberOfLines={1}>
+                  {article.domain}
+                </Text>
+              </View>
+              <View style={styles.articleTopRight}>
+                <Text style={[styles.articleAge, { color: c.subtitle }]}>
+                  {formatRelativeDate(article.creationTime)}
+                </Text>
+                <Pressable onPress={() => onOpenActions(article)} hitSlop={8}>
+                  <Ionicons name="ellipsis-horizontal" size={16} color={c.subtitle} />
+                </Pressable>
+              </View>
             </View>
-            <Text style={[styles.articleDomain, { color: c.subtitle }]} numberOfLines={1}>
-              {article.domain}
-            </Text>
-          </View>
-          <View style={styles.articleTopRight}>
-            <Text style={[styles.articleAge, { color: c.subtitle }]}>
-              {formatRelativeDate(article.creationTime)}
-            </Text>
-            <Pressable onPress={() => onOpenActions(article)} hitSlop={8}>
-              <Ionicons name="ellipsis-horizontal" size={16} color={c.subtitle} />
-            </Pressable>
-          </View>
-        </View>
 
-        <Text style={[styles.articleTitle, { color: c.text }]} numberOfLines={2}>
-          {article.title ?? article.domain}
-        </Text>
-        {article.description ? (
-          <Text style={[styles.articleDescription, { color: c.subtitle }]} numberOfLines={2}>
-            {article.description}
-          </Text>
-        ) : null}
-        <View style={styles.articleMetaRow}>
-          <View style={[styles.articleTagChip, { borderColor: c.border }]}>
-            <Text style={[styles.articleTagChipText, { color: c.text }]}>
-              {primaryTag.toUpperCase()}
+            <Text style={[styles.articleTitle, { color: c.text }]} numberOfLines={2}>
+              {article.title ?? article.domain}
             </Text>
-            <Feather name="x" size={14} color={c.subtitle} />
+            {article.description ? (
+              <Text style={[styles.articleDescription, { color: c.subtitle }]} numberOfLines={2}>
+                {article.description}
+              </Text>
+            ) : null}
           </View>
-          <Text style={[styles.addTagText, { color: c.subtitle }]}>Add tag...</Text>
+        </Pressable>
+        <View style={styles.articleMetaRow}>
+          <TagEditor
+            articleId={article.articleId}
+            initialTags={article.tags}
+            onUpdateTags={onUpdateTags}
+          />
         </View>
-      </Pressable>
+      </View>
       <View style={styles.articleSeparator}>
         {ARTICLE_SEPARATOR_DASH_KEYS.map((dashKey) => (
           <View
@@ -102,6 +106,9 @@ const styles = StyleSheet.create({
     width: 6,
     height: 1.5,
     borderRadius: 999,
+  },
+  articleContent: {
+    gap: 8,
   },
   articleHeader: {
     flexDirection: 'row',
@@ -145,33 +152,14 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 4,
   },
-  articleTagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  articleTagChipText: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: 'Geist-Bold',
-  },
-  addTagText: {
-    fontSize: 12,
-    fontWeight: '400',
-    fontFamily: 'Geist',
-  },
   articleAge: {
     fontSize: 13,
     fontWeight: '500',
     fontFamily: 'Geist-Medium',
   },
   articleTitle: {
-    fontSize: 27,
-    lineHeight: 34,
+    fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
     fontFamily: 'Geist-Bold',
   },

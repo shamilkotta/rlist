@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   confirmTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     fontFamily: 'Geist-Bold',
   },

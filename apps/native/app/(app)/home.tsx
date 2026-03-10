@@ -1,6 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -29,13 +36,22 @@ export default function HomeScreen() {
 
   const [filter, setFilter] = useState<TabFilter>('unread');
   const [actionTarget, setActionTarget] = useState<DisplayArticle | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DisplayArticle | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const userId = session?.user?.id;
 
-  const { articles, status, loadMore, toggleRead, toggleArchive, deleteArticle, refresh } =
-    useLocalHomeFeed(userId, filter);
+  const {
+    articles,
+    status,
+    loadMore,
+    toggleRead,
+    toggleArchive,
+    deleteArticle,
+    updateTags,
+    refresh,
+  } = useLocalHomeFeed(userId, filter);
 
   const handleSignOut = useCallback(async () => {
     if (!userId) return;
@@ -50,6 +66,7 @@ export default function HomeScreen() {
 
   const closeActionSheet = () => {
     setActionTarget(null);
+    setDeleteTarget(null);
     setShowDeleteConfirm(false);
   };
 
@@ -65,9 +82,16 @@ export default function HomeScreen() {
     closeActionSheet();
   };
 
-  const onActionDelete = () => {
+  const onOpenDeleteDialog = () => {
     if (!actionTarget) return;
-    void deleteArticle(actionTarget.articleId);
+    setDeleteTarget(actionTarget);
+    setActionTarget(null);
+    setShowDeleteConfirm(true);
+  };
+
+  const onActionDelete = () => {
+    if (!deleteTarget) return;
+    void deleteArticle(deleteTarget.articleId);
     closeActionSheet();
   };
 
@@ -96,9 +120,15 @@ export default function HomeScreen() {
         return <HomeIntroSection filter={filter} status={status} articleCount={articles.length} />;
       }
 
-      return <ArticleCard article={item.article} onOpenActions={setActionTarget} />;
+      return (
+        <ArticleCard
+          article={item.article}
+          onOpenActions={setActionTarget}
+          onUpdateTags={updateTags}
+        />
+      );
     },
-    [articles.length, filter, status]
+    [articles.length, filter, status, updateTags]
   );
 
   const renderHeader = useCallback(
@@ -121,27 +151,34 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: c.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
 
-      <FlatList<HomeListItem>
-        data={listData}
-        renderItem={renderListItem}
-        keyExtractor={keyExtractor}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        stickyHeaderIndices={[1]}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.3}
-        refreshing={isRefreshing}
-        onRefresh={handleRefresh}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <FlatList<HomeListItem>
+          data={listData}
+          renderItem={renderListItem}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
+          stickyHeaderIndices={[1]}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
 
       <ArticleActionsSheet
         article={actionTarget}
         onClose={closeActionSheet}
         onToggleRead={onActionToggleRead}
         onToggleArchive={onActionToggleArchive}
-        onDelete={() => setShowDeleteConfirm(true)}
+        onDelete={onOpenDeleteDialog}
       />
 
       <DeleteArticleDialog
@@ -161,6 +198,9 @@ function keyExtractor(item: HomeListItem) {
 
 const styles = StyleSheet.create({
   safeArea: {
+    flex: 1,
+  },
+  keyboardAvoid: {
     flex: 1,
   },
   listContent: {

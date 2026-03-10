@@ -54,6 +54,7 @@ export const syncOutbox = sqliteTable(
     userId: text().notNull(),
     action: text().notNull(),
     articleId: text().notNull(),
+    payload: text(),
     status: text().notNull().default('pending'),
     retryCount: int().notNull().default(0),
     createdAt: real().notNull(),

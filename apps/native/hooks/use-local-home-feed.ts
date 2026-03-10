@@ -11,6 +11,7 @@ import {
   resetPaginationForFilter,
   toggleLocalArchiveStatus,
   toggleLocalReadStatus,
+  updateLocalTags,
   upsertServerPage,
 } from '@/db/repositories/articles';
 import type { CachedArticle } from '@/db/schema';
@@ -192,6 +193,16 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
     [userId, flushOutboxNow]
   );
 
+  const updateTags = useCallback(
+    async (articleId: string, tags: string[]) => {
+      if (!userId) return;
+      await updateLocalTags(articleId, userId, tags);
+      await addOutboxItem('updateTags', articleId, userId, JSON.stringify(tags));
+      void flushOutboxNow();
+    },
+    [userId, flushOutboxNow]
+  );
+
   // ---------------------------------------------------------------------------
   // Refresh (pull-to-refresh)
   // ---------------------------------------------------------------------------
@@ -217,6 +228,7 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
     toggleRead,
     toggleArchive,
     deleteArticle,
+    updateTags,
     refresh,
   };
 }

@@ -35,6 +35,11 @@ export function useArticleOutboxSync(userId: string | undefined) {
             case 'deleteArticle':
               await client.mutation(api.articles.deleteArticle, { articleId: id });
               break;
+            case 'updateTags': {
+              const tags = item.payload ? (JSON.parse(item.payload) as string[]) : [];
+              await client.mutation(api.articles.updateArticleTags, { articleId: id, tags });
+              break;
+            }
           }
           await markOutboxProcessed(item.id);
           if (item.action === 'deleteArticle') {

@@ -22,6 +22,13 @@
       "when": 1773150396040,
       "tag": "0002_overjoyed_virginia_dare",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1773153410399,
+      "tag": "0003_broad_catseye",
+      "breakpoints": true
     }
   ]
 }
