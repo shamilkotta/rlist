@@ -40,31 +40,16 @@ export default function HomeScreen() {
   const [actionTarget, setActionTarget] = useState<DisplayArticle | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DisplayArticle | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const userId = session?.user?.id;
 
-  const {
-    articles,
-    status,
-    loadMore,
-    toggleRead,
-    toggleArchive,
-    deleteArticle,
-    updateTags,
-    refresh,
-  } = useLocalHomeFeed(userId, filter);
+  const { articles, status, loadMore, toggleRead, toggleArchive, deleteArticle, updateTags } =
+    useLocalHomeFeed(userId, filter);
 
   const handleSignOut = useCallback(async () => {
     if (!userId) return;
     await signOutAndClear(userId);
   }, [userId]);
-
-  const handleRefresh = useCallback(() => {
-    setIsRefreshing(true);
-    refresh();
-    setTimeout(() => setIsRefreshing(false), 1500);
-  }, [refresh]);
 
   const closeActionSheet = () => {
     setActionTarget(null);
@@ -173,8 +158,6 @@ export default function HomeScreen() {
           stickyHeaderIndices={[1]}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

@@ -257,6 +257,10 @@ export async function resetPaginationForFilter(filter: TabFilter, userId: string
     .where(and(eq(paginationState.filter, filter), eq(paginationState.userId, userId)));
 }
 
+export async function resetAllPaginationForUser(userId: string) {
+  await db.delete(paginationState).where(eq(paginationState.userId, userId));
+}
+
 export async function clearLocalData(userId: string) {
   await db.delete(cachedArticles).where(eq(cachedArticles.userId, userId));
   await db.delete(paginationState).where(eq(paginationState.userId, userId));

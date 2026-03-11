@@ -2,13 +2,12 @@ import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useQueries } from '@tanstack/react-query';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import {
   addOutboxItem,
   buildFeedQuery,
   markLocallyDeleted,
-  resetPaginationForFilter,
   toggleLocalArchiveStatus,
   toggleLocalReadStatus,
   updateLocalTags,
@@ -39,29 +38,47 @@ function toDisplayArticle(row: CachedArticle): DisplayArticle {
 }
 
 export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) {
-  const [loadedCursors, setLoadedCursors] = useState<Array<string | null>>([null]);
+  const [loadedCursors, setLoadedCursors] = useState<(string | null)[]>([null]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const pendingPagesToLoadRef = useRef(0);
+  const prevFilterRef = useRef(filter);
+  const filterGenerationRef = useRef(0);
   const { flushOutboxNow } = useArticleOutboxSync(userId);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset must fire when filter changes
-  useEffect(() => {
-    setLoadedCursors([null]);
-    setIsLoadingMore(false);
-    pendingPagesToLoadRef.current = 0;
-  }, [filter]);
+  // Synchronous filter-scoped cursors: use [null] immediately when filter changes
+  // so we never run queries with stale cursors from a different tab
+  const filterJustChanged = prevFilterRef.current !== filter;
+  if (filterJustChanged) {
+    prevFilterRef.current = filter;
+    filterGenerationRef.current += 1;
+  }
+  const effectiveCursors = useMemo(
+    () => (filterJustChanged ? [null] : loadedCursors),
+    [filterJustChanged, loadedCursors]
+  );
+
+  useLayoutEffect(() => {
+    if (filterJustChanged) {
+      setLoadedCursors([null]);
+      setIsLoadingMore(false);
+      pendingPagesToLoadRef.current = 0;
+    }
+  }, [filterJustChanged]);
 
   // ---------------------------------------------------------------------------
   // Reactive local read — SQLite is the rendering source of truth
   // ---------------------------------------------------------------------------
-  const { data: localArticles } = useLiveQuery(buildFeedQuery(userId ?? '', filter));
+  const { data: localArticles } = useLiveQuery(buildFeedQuery(userId ?? '', filter), [
+    userId,
+    filter,
+  ]);
 
   // ---------------------------------------------------------------------------
   // Convex background sync — live subscriptions materialised into SQLite
   // ---------------------------------------------------------------------------
   const pageQueries = useQueries({
     queries: userId
-      ? loadedCursors.map((cursor) => ({
+      ? effectiveCursors.map((cursor) => ({
           ...convexQuery(api.articles.listUserArticles, {
             filter,
             paginationOpts: { numItems: PAGE_SIZE, cursor },
@@ -70,25 +87,71 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
       : [],
   });
 
-  const pagesKey = pageQueries
-    .map((q, i) =>
-      q.data
-        ? `${i}:${q.data.continueCursor}:${q.data.page.length}:${q.data.isDone}`
-        : `${i}:pending`
-    )
-    .join('|');
+  const backgroundFilters = useMemo(
+    () => (['unread', 'all', 'archive'] as TabFilter[]).filter((candidate) => candidate !== filter),
+    [filter]
+  );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pagesKey is the stable change-detection fingerprint
+  // Keep first pages of non-active filters reactive so remote status flips
+  // still get materialized locally even when an item disappears from current filter pages.
+  const backgroundPageQueries = useQueries({
+    queries: userId
+      ? backgroundFilters.map((backgroundFilter) => ({
+          ...convexQuery(api.articles.listUserArticles, {
+            filter: backgroundFilter,
+            paginationOpts: { numItems: PAGE_SIZE, cursor: null },
+          }),
+        }))
+      : [],
+  });
+
+  const pageDataToUpsert = useMemo(() => {
+    const activeFilterPages = pageQueries
+      .filter((q): q is typeof q & { data: NonNullable<typeof q.data> } => !!q.data)
+      .map((q) => ({
+        filter,
+        page: q.data.page,
+        continueCursor: q.data.continueCursor,
+        isDone: q.data.isDone,
+      }));
+
+    const backgroundFilterPages = backgroundPageQueries
+      .map((query, index) => ({
+        query,
+        backgroundFilter: backgroundFilters[index],
+      }))
+      .filter(
+        (
+          item
+        ): item is {
+          query: (typeof backgroundPageQueries)[number] & {
+            data: NonNullable<(typeof backgroundPageQueries)[number]['data']>;
+          };
+          backgroundFilter: TabFilter;
+        } => !!item.query.data && !!item.backgroundFilter
+      )
+      .map((item) => ({
+        filter: item.backgroundFilter,
+        page: item.query.data.page,
+        continueCursor: item.query.data.continueCursor,
+        isDone: item.query.data.isDone,
+      }));
+
+    return [...activeFilterPages, ...backgroundFilterPages];
+  }, [pageQueries, filter, backgroundPageQueries, backgroundFilters]);
+
   useEffect(() => {
     if (!userId) return;
 
+    const generationAtStart = filterGenerationRef.current;
+
     void (async () => {
-      for (const q of pageQueries) {
-        if (!q.data) continue;
-        await upsertServerPage(userId, q.data.page, filter, q.data.continueCursor, q.data.isDone);
+      for (const item of pageDataToUpsert) {
+        if (filterGenerationRef.current !== generationAtStart) return;
+        await upsertServerPage(userId, item.page, item.filter, item.continueCursor, item.isDone);
       }
     })();
-  }, [pagesKey, userId, filter, pageQueries]);
+  }, [pageDataToUpsert, userId]);
 
   // ---------------------------------------------------------------------------
   // Pagination
@@ -101,6 +164,7 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   }, [pageQueries]);
 
   useEffect(() => {
+    if (filterJustChanged) return;
     if (pendingPagesToLoadRef.current <= 0 || !lastPage) return;
     if (lastPage.isDone) {
       pendingPagesToLoadRef.current = 0;
@@ -108,14 +172,14 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
       return;
     }
     const nextCursor = lastPage.continueCursor;
-    if (loadedCursors.includes(nextCursor)) {
+    if (effectiveCursors.includes(nextCursor)) {
       pendingPagesToLoadRef.current = 0;
       setIsLoadingMore(false);
       return;
     }
     pendingPagesToLoadRef.current -= 1;
     setLoadedCursors((prev) => [...prev, nextCursor]);
-  }, [lastPage, loadedCursors]);
+  }, [filterJustChanged, lastPage, effectiveCursors]);
 
   useEffect(() => {
     if (!isLoadingMore) return;
@@ -166,8 +230,9 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   const toggleRead = useCallback(
     async (articleId: string) => {
       if (!userId) return;
-      await toggleLocalReadStatus(articleId, userId);
+      // Enqueue first so server upserts know this row has a pending local override.
       await addOutboxItem('toggleReadStatus', articleId, userId);
+      await toggleLocalReadStatus(articleId, userId);
       void flushOutboxNow();
     },
     [userId, flushOutboxNow]
@@ -176,8 +241,9 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   const toggleArchive = useCallback(
     async (articleId: string) => {
       if (!userId) return;
-      await toggleLocalArchiveStatus(articleId, userId);
+      // Enqueue first so server upserts know this row has a pending local override.
       await addOutboxItem('toggleArchiveStatus', articleId, userId);
+      await toggleLocalArchiveStatus(articleId, userId);
       void flushOutboxNow();
     },
     [userId, flushOutboxNow]
@@ -204,17 +270,6 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   );
 
   // ---------------------------------------------------------------------------
-  // Refresh (pull-to-refresh)
-  // ---------------------------------------------------------------------------
-  const refresh = useCallback(() => {
-    if (!userId) return;
-    void resetPaginationForFilter(filter, userId);
-    setLoadedCursors([null]);
-    setIsLoadingMore(false);
-    pendingPagesToLoadRef.current = 0;
-  }, [filter, userId]);
-
-  // ---------------------------------------------------------------------------
   // Result
   // ---------------------------------------------------------------------------
   const articles = useMemo(() => {
@@ -229,6 +284,5 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
     toggleArchive,
     deleteArticle,
     updateTags,
-    refresh,
   };
 }
