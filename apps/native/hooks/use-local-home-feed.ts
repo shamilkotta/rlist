@@ -37,7 +37,16 @@ function toDisplayArticle(row: CachedArticle): DisplayArticle {
   };
 }
 
-export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) {
+function hasMatchingTag(articleTags: string[], selectedTags: string[]): boolean {
+  if (selectedTags.length === 0) return true;
+  return articleTags.some((tag) => selectedTags.includes(tag));
+}
+
+export function useLocalHomeFeed(
+  userId: string | undefined,
+  filter: TabFilter,
+  selectedTags: string[] = []
+) {
   const [loadedCursors, setLoadedCursors] = useState<(string | null)[]>([null]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const pendingPagesToLoadRef = useRef(0);
@@ -270,11 +279,13 @@ export function useLocalHomeFeed(userId: string | undefined, filter: TabFilter) 
   );
 
   // ---------------------------------------------------------------------------
-  // Result
+  // Result — filter by selected tags locally
   // ---------------------------------------------------------------------------
   const articles = useMemo(() => {
-    return (localArticles ?? []).map(toDisplayArticle);
-  }, [localArticles]);
+    const allArticles = (localArticles ?? []).map(toDisplayArticle);
+    if (selectedTags.length === 0) return allArticles;
+    return allArticles.filter((article) => hasMatchingTag(article.tags, selectedTags));
+  }, [localArticles, selectedTags]);
 
   return {
     articles,

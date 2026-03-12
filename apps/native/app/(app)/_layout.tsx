@@ -27,6 +27,14 @@ export default function AppLayout() {
         name="search"
         options={{
           animation: 'fade_from_bottom',
+          animationDuration: 140,
+        }}
+      />
+      <Stack.Screen
+        name="save-url"
+        options={{
+          animation: 'fade_from_bottom',
+          animationDuration: 140,
         }}
       />
     </Stack>

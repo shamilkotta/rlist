@@ -1,3 +1,6 @@
+import { convexQuery } from '@convex-dev/react-query';
+import { api } from '@rlist/api/convex/_generated/api';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
@@ -24,6 +27,7 @@ import { useLocalHomeFeed } from '@/hooks/use-local-home-feed';
 import { useAppColors, useTheme } from '@/hooks/use-theme';
 import { authClient } from '@/lib/auth-client';
 import { signOutAndClear } from '@/lib/sign-out';
+import { normalizeTags } from '@/lib/tags';
 
 type HomeListItem =
   | { type: 'filter' }
@@ -37,14 +41,46 @@ export default function HomeScreen() {
   const c = useAppColors();
 
   const [filter, setFilter] = useState<TabFilter>('unread');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isTagPanelOpen, setIsTagPanelOpen] = useState(false);
   const [actionTarget, setActionTarget] = useState<DisplayArticle | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DisplayArticle | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const userId = session?.user?.id;
 
+  const { data: availableTags = [] } = useQuery({
+    ...convexQuery(api.articles.listUserTags, { filter }),
+    enabled: !!userId,
+  });
+
   const { articles, status, loadMore, toggleRead, toggleArchive, deleteArticle, updateTags } =
-    useLocalHomeFeed(userId, filter);
+    useLocalHomeFeed(userId, filter, selectedTags);
+
+  const handleFilterChange = useCallback((newFilter: TabFilter) => {
+    setFilter(newFilter);
+    setSelectedTags([]);
+    setIsTagPanelOpen(false);
+  }, []);
+
+  const handleToggleTagPanel = useCallback(() => {
+    setIsTagPanelOpen((prev) => !prev);
+  }, []);
+
+  const handleToggleTag = useCallback((tag: string) => {
+    const normalizedTag = normalizeTags([tag]).at(0);
+    if (!normalizedTag) return;
+
+    setSelectedTags((prev) =>
+      prev.includes(normalizedTag)
+        ? prev.filter((t) => t !== normalizedTag)
+        : normalizeTags([...prev, normalizedTag])
+    );
+  }, []);
+
+  const handleClearTags = useCallback(() => {
+    setSelectedTags([]);
+  }, []);
 
   const handleSignOut = useCallback(async () => {
     if (!userId) return;
@@ -100,11 +136,29 @@ export default function HomeScreen() {
   const renderListItem = useCallback(
     ({ item }: { item: HomeListItem }) => {
       if (item.type === 'filter') {
-        return <HomeFilterTabs filter={filter} onFilterChange={setFilter} />;
+        return (
+          <HomeFilterTabs
+            filter={filter}
+            onFilterChange={handleFilterChange}
+            isTagPanelOpen={isTagPanelOpen}
+            onToggleTagPanel={handleToggleTagPanel}
+            selectedTags={selectedTags}
+            availableTags={availableTags}
+            onToggleTag={handleToggleTag}
+            onClearTags={handleClearTags}
+          />
+        );
       }
 
       if (item.type === 'intro') {
-        return <HomeIntroSection filter={filter} status={status} articleCount={articles.length} />;
+        return (
+          <HomeIntroSection
+            filter={filter}
+            status={status}
+            articleCount={articles.length}
+            onPressSaveUrl={() => router.push('/save-url')}
+          />
+        );
       }
 
       return (
@@ -115,7 +169,20 @@ export default function HomeScreen() {
         />
       );
     },
-    [articles.length, filter, status, updateTags]
+    [
+      articles.length,
+      availableTags,
+      filter,
+      handleClearTags,
+      handleFilterChange,
+      handleToggleTag,
+      handleToggleTagPanel,
+      isTagPanelOpen,
+      router,
+      selectedTags,
+      status,
+      updateTags,
+    ]
   );
 
   const renderHeader = useCallback(

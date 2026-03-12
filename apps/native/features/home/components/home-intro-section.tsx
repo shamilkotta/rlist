@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { PaginationStatus, TabFilter } from '@/features/home/home-feed.types';
 import { useAppColors } from '@/hooks/use-theme';
@@ -14,9 +14,15 @@ type HomeIntroSectionProps = {
   filter: TabFilter;
   status: PaginationStatus;
   articleCount: number;
+  onPressSaveUrl: () => void;
 };
 
-export function HomeIntroSection({ filter, status, articleCount }: HomeIntroSectionProps) {
+export function HomeIntroSection({
+  filter,
+  status,
+  articleCount,
+  onPressSaveUrl,
+}: HomeIntroSectionProps) {
   const c = useAppColors();
 
   const isLoading =
@@ -27,10 +33,10 @@ export function HomeIntroSection({ filter, status, articleCount }: HomeIntroSect
     <View>
       <Text style={[styles.title, { color: c.text }]}>{TAB_HEADINGS[filter]}</Text>
 
-      <View style={[styles.urlInputWrap, { borderColor: c.border }]}>
+      <Pressable style={[styles.urlInputWrap, { borderColor: c.border }]} onPress={onPressSaveUrl}>
         <Feather name="link" size={15} color={c.subtitle} />
         <Text style={[styles.urlPlaceholder, { color: c.subtitle }]}>Paste a URL to save...</Text>
-      </View>
+      </Pressable>
 
       {isLoading ? (
         <View style={styles.loadingList}>

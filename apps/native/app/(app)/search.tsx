@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 6,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    height: 56,
     borderWidth: 1,
     borderRadius: 12,
   },
