@@ -16,11 +16,19 @@ const ARTICLE_SEPARATOR_DASH_KEYS: string[] = Array.from(
 
 type ArticleCardProps = {
   article: DisplayArticle;
+  activeTags?: string[];
   onOpenActions: (article: DisplayArticle) => void;
   onUpdateTags: (articleId: string, tags: string[]) => void;
+  onTagClick?: (tag: string) => void;
 };
 
-export function ArticleCard({ article, onOpenActions, onUpdateTags }: ArticleCardProps) {
+export function ArticleCard({
+  article,
+  activeTags = [],
+  onOpenActions,
+  onUpdateTags,
+  onTagClick,
+}: ArticleCardProps) {
   const c = useAppColors();
 
   return (
@@ -68,7 +76,9 @@ export function ArticleCard({ article, onOpenActions, onUpdateTags }: ArticleCar
           <TagEditor
             articleId={article.articleId}
             initialTags={article.tags}
+            activeTags={activeTags}
             onUpdateTags={onUpdateTags}
+            onTagClick={onTagClick}
           />
         </View>
       </View>

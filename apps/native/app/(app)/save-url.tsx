@@ -41,10 +41,18 @@ export default function SaveUrlScreen() {
 
   const normalizedUrlInput = useMemo(() => validateArticleUrl(urlInput), [urlInput]);
   const showUrlPreview = normalizedUrlInput !== null;
-  const valueToDebounce = showUrlPreview ? urlInput : '';
-  const debouncedUrl = useDebounce(valueToDebounce, URL_DEBOUNCE_MS);
+  const debouncedUrl = useDebounce(urlInput, URL_DEBOUNCE_MS);
   const normalizedDebouncedUrl = useMemo(() => validateArticleUrl(debouncedUrl), [debouncedUrl]);
   const shouldFetch = normalizedDebouncedUrl !== null;
+
+  console.log({
+    shouldFetch,
+    normalizedDebouncedUrl,
+    urlInput,
+    debouncedUrl,
+    showUrlPreview,
+    normalizedUrlInput,
+  });
 
   const metadataQuery = useQuery({
     ...convexAction(
@@ -148,6 +156,8 @@ export default function SaveUrlScreen() {
   const isLoadingMetadata = metadataQuery.isLoading;
   const hasMetadataError = shouldFetch && metadataQuery.isError && !metadata;
   const domainFallback = useMemo(() => getDomain(urlInput), [urlInput]);
+
+  console.log({ metadata, isLoadingMetadata, hasMetadataError, domainFallback });
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: c.background }]}>

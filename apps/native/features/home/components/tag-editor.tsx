@@ -10,14 +10,22 @@ const TAG_MAX_LENGTH = 15;
 type TagEditorProps = {
   articleId: string;
   initialTags: string[];
+  activeTags?: string[];
   onUpdateTags: (articleId: string, tags: string[]) => void;
+  onTagClick?: (tag: string) => void;
 };
 
 function normalizeTag(value: string): string {
   return value.trim().toUpperCase();
 }
 
-export function TagEditor({ articleId, initialTags, onUpdateTags }: TagEditorProps) {
+export function TagEditor({
+  articleId,
+  initialTags,
+  activeTags = [],
+  onUpdateTags,
+  onTagClick,
+}: TagEditorProps) {
   const c = useAppColors();
   const [tags, setTags] = useState<string[]>(initialTags);
   const [tagInput, setTagInput] = useState('');
@@ -68,21 +76,49 @@ export function TagEditor({ articleId, initialTags, onUpdateTags }: TagEditorPro
     commitTagInput();
   }, [commitTagInput]);
 
+  const handleTagPress = useCallback(
+    (tag: string) => {
+      onTagClick?.(tag);
+    },
+    [onTagClick]
+  );
+
+  const handleRemoveTag = useCallback(
+    (tag: string) => {
+      removeTag(tag);
+    },
+    [removeTag]
+  );
+
   const canAddTag = tags.length < MAX_TAGS;
 
   return (
     <View style={styles.container}>
       <View style={styles.tagsRow}>
-        {tags.map((tag) => (
-          <Pressable
-            key={tag}
-            style={[styles.tagChip, { borderColor: c.border }]}
-            onPress={() => removeTag(tag)}
-          >
-            <Text style={[styles.tagChipText, { color: c.text }]}>{tag}</Text>
-            <Feather name="x" size={14} color={c.subtitle} />
-          </Pressable>
-        ))}
+        {tags.map((tag) => {
+          const isActive = activeTags.includes(tag);
+          return (
+            <View
+              key={tag}
+              style={[
+                styles.tagChip,
+                {
+                  borderColor: isActive ? c.tint : c.border,
+                  backgroundColor: isActive ? `${c.tint}15` : 'transparent',
+                },
+              ]}
+            >
+              <Pressable onPress={() => handleTagPress(tag)} hitSlop={4}>
+                <Text style={[styles.tagChipText, { color: isActive ? c.tint : c.text }]}>
+                  {tag}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => handleRemoveTag(tag)} hitSlop={4}>
+                <Feather name="x" size={14} color={c.subtitle} />
+              </Pressable>
+            </View>
+          );
+        })}
         {canAddTag && (
           <TextInput
             style={[styles.addTagInput, { color: c.text }]}

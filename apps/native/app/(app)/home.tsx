@@ -164,8 +164,10 @@ export default function HomeScreen() {
       return (
         <ArticleCard
           article={item.article}
+          activeTags={selectedTags}
           onOpenActions={setActionTarget}
           onUpdateTags={updateTags}
+          onTagClick={handleToggleTag}
         />
       );
     },
