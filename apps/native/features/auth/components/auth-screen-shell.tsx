@@ -29,9 +29,14 @@ export function AuthScreenShell({ title, subtitle, children }: AuthScreenShellPr
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.headerContainer}>
               <View style={[styles.iconSquare, { backgroundColor: cardColor, borderColor }]}>
                 <AppLogoIcon size={32} color={textColor} />

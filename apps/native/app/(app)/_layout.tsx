@@ -1,5 +1,4 @@
 import { Redirect, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
 
 import { useAppColdStartSync } from '@/hooks/use-app-cold-start-sync';
 import { useShareIntentHandler } from '@/hooks/use-share-intent-handler';
@@ -31,14 +30,7 @@ export default function AppLayout() {
           animationDuration: 140,
         }}
       />
+      <Stack.Screen name="profile" />
     </Stack>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

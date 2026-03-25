@@ -7,11 +7,11 @@ import { useAppColors, useTheme } from '@/hooks/use-theme';
 
 type HomeHeaderProps = {
   userName?: string | null;
-  onSignOut: () => void;
+  onPressProfile: () => void;
   onPressSearch: () => void;
 };
 
-export function HomeHeader({ userName, onSignOut, onPressSearch }: HomeHeaderProps) {
+export function HomeHeader({ userName, onPressProfile, onPressSearch }: HomeHeaderProps) {
   const { colorScheme } = useTheme();
   const c = useAppColors();
 
@@ -31,7 +31,7 @@ export function HomeHeader({ userName, onSignOut, onPressSearch }: HomeHeaderPro
         </Pressable>
         <Pressable
           style={[styles.avatarButton, { backgroundColor: c.subtitle }]}
-          onPress={onSignOut}
+          onPress={onPressProfile}
         >
           <Text style={[styles.avatarButtonText, { color: c.background }]}>
             {userName?.charAt(0).toUpperCase() ?? 'U'}

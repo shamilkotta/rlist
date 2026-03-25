@@ -1,4 +1,5 @@
 import { convexQuery } from '@convex-dev/react-query';
+import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useQuery } from '@tanstack/react-query';
@@ -10,10 +11,11 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   ArticleActionsSheet,
@@ -27,7 +29,6 @@ import type { DisplayArticle, TabFilter } from '@/features/home/home-feed.types'
 import { useLocalHomeFeed } from '@/hooks/use-local-home-feed';
 import { useAppColors, useTheme } from '@/hooks/use-theme';
 import { authClient } from '@/lib/auth-client';
-import { signOutAndClear } from '@/lib/sign-out';
 import { normalizeTags } from '@/lib/tags';
 
 type HomeListItem =
@@ -37,6 +38,7 @@ type HomeListItem =
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { data: session } = authClient.useSession();
   const { colorScheme } = useTheme();
@@ -83,11 +85,6 @@ export default function HomeScreen() {
   const handleClearTags = useCallback(() => {
     setSelectedTags([]);
   }, []);
-
-  const handleSignOut = useCallback(async () => {
-    if (!userId) return;
-    await signOutAndClear(userId);
-  }, [userId]);
 
   const closeActionSheet = () => {
     setActionTarget(null);
@@ -153,14 +150,7 @@ export default function HomeScreen() {
       }
 
       if (item.type === 'intro') {
-        return (
-          <HomeIntroSection
-            filter={filter}
-            status={status}
-            articleCount={articles.length}
-            onPressSaveUrl={() => router.push('/save-url')}
-          />
-        );
+        return <HomeIntroSection filter={filter} status={status} articleCount={articles.length} />;
       }
 
       return (
@@ -182,7 +172,6 @@ export default function HomeScreen() {
       handleToggleTag,
       handleToggleTagPanel,
       isTagPanelOpen,
-      router,
       selectedTags,
       status,
       updateTags,
@@ -193,11 +182,11 @@ export default function HomeScreen() {
     () => (
       <HomeHeader
         userName={session?.user?.name}
-        onSignOut={handleSignOut}
+        onPressProfile={() => router.push('/profile')}
         onPressSearch={() => router.push('/search')}
       />
     ),
-    [session?.user?.name, handleSignOut, router]
+    [session?.user?.name, router]
   );
 
   const renderFooter = useCallback(() => {
@@ -229,7 +218,7 @@ export default function HomeScreen() {
           stickyHeaderIndices={[1]}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 80 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         />
@@ -248,6 +237,22 @@ export default function HomeScreen() {
         onClose={closeActionSheet}
         onConfirm={onActionDelete}
       />
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Save URL"
+        onPress={() => router.push('/save-url')}
+        style={({ pressed }) => [
+          styles.fab,
+          {
+            backgroundColor: c.tint,
+            bottom: insets.bottom + 20,
+            opacity: pressed ? 0.92 : 1,
+          },
+        ]}
+      >
+        <Ionicons name="add" size={28} color={c.background} />
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -267,10 +272,23 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 8,
-    paddingBottom: 40,
   },
   footer: {
     paddingVertical: 20,
     alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.28,
+    shadowRadius: 4,
   },
 });
