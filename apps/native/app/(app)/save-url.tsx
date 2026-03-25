@@ -3,9 +3,9 @@ import { Feather } from '@expo/vector-icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ConvexError } from 'convex/values';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -32,12 +32,19 @@ function normalizeTag(value: string): string {
 
 export default function SaveUrlScreen() {
   const router = useRouter();
+  const { sharedUrl } = useLocalSearchParams<{ sharedUrl?: string }>();
   const c = useAppColors();
   const { colorScheme } = useTheme();
-  const [urlInput, setUrlInput] = useState('');
+  const [urlInput, setUrlInput] = useState(sharedUrl ?? '');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (sharedUrl) {
+      setUrlInput(sharedUrl);
+    }
+  }, [sharedUrl]);
 
   const normalizedUrlInput = useMemo(() => validateArticleUrl(urlInput), [urlInput]);
   const showUrlPreview = normalizedUrlInput !== null;
@@ -45,19 +52,14 @@ export default function SaveUrlScreen() {
   const normalizedDebouncedUrl = useMemo(() => validateArticleUrl(debouncedUrl), [debouncedUrl]);
   const shouldFetch = normalizedDebouncedUrl !== null;
 
-  console.log({
-    shouldFetch,
-    normalizedDebouncedUrl,
-    urlInput,
-    debouncedUrl,
-    showUrlPreview,
-    normalizedUrlInput,
-  });
-
-  const metadataQuery = useQuery({
+  const {
+    data: metadata,
+    isLoading: isLoadingMetadata,
+    isError,
+  } = useQuery({
     ...convexAction(
       api.articles.fetchMetadata,
-      shouldFetch && normalizedDebouncedUrl ? { url: normalizedDebouncedUrl } : 'skip'
+      shouldFetch ? { url: normalizedDebouncedUrl } : 'skip'
     ),
     retry: false,
   });
@@ -152,12 +154,8 @@ export default function SaveUrlScreen() {
     );
   };
 
-  const metadata = metadataQuery.data;
-  const isLoadingMetadata = metadataQuery.isLoading;
-  const hasMetadataError = shouldFetch && metadataQuery.isError && !metadata;
+  const hasMetadataError = showUrlPreview && isError && !metadata;
   const domainFallback = useMemo(() => getDomain(urlInput), [urlInput]);
-
-  console.log({ metadata, isLoadingMetadata, hasMetadataError, domainFallback });
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: c.background }]}>

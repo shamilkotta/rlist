@@ -2,11 +2,13 @@ import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useAppColdStartSync } from '@/hooks/use-app-cold-start-sync';
+import { useShareIntentHandler } from '@/hooks/use-share-intent-handler';
 import { authClient } from '@/lib/auth-client';
 
 export default function AppLayout() {
   const { data: session, isPending } = authClient.useSession();
   useAppColdStartSync(session?.user?.id);
+  useShareIntentHandler();
 
   if (isPending) {
     return (
