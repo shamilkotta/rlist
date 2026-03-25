@@ -1,22 +1,14 @@
 import { Redirect, Stack } from 'expo-router';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { useAppColdStartSync } from '@/hooks/use-app-cold-start-sync';
 import { useShareIntentHandler } from '@/hooks/use-share-intent-handler';
 import { authClient } from '@/lib/auth-client';
 
 export default function AppLayout() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session } = authClient.useSession();
   useAppColdStartSync(session?.user?.id);
   useShareIntentHandler();
-
-  if (isPending) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" />
-      </View>
-    );
-  }
 
   if (!session) {
     return <Redirect href={'/login' as never} />;

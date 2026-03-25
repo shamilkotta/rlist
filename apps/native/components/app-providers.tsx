@@ -46,6 +46,7 @@ export function AppProviders({ children }: PropsWithChildren) {
   const [themeLoaded, setThemeLoaded] = useState(false);
   const nativeColorScheme = useNativeColorScheme();
   const { success: migrationsSuccess, error: migrationsError } = useMigrations(db, migrations);
+  const { isPending } = authClient.useSession();
 
   const [fontsLoaded] = useFonts({
     Geist: require('../assets/fonts/Geist-Regular.ttf'),
@@ -73,10 +74,10 @@ export function AppProviders({ children }: PropsWithChildren) {
   }, [migrationsSuccess]);
 
   useEffect(() => {
-    if (fontsLoaded && themeLoaded) {
+    if (fontsLoaded && themeLoaded && !isPending) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, themeLoaded]);
+  }, [fontsLoaded, themeLoaded, isPending]);
 
   if (migrationsError) {
     throw migrationsError;
