@@ -45,7 +45,8 @@ function hasMatchingTag(articleTags: string[], selectedTags: string[]): boolean 
 export function useLocalHomeFeed(
   userId: string | undefined,
   filter: TabFilter,
-  selectedTags: string[] = []
+  selectedTags: string[] = [],
+  isActive = true
 ) {
   const [loadedCursors, setLoadedCursors] = useState<(string | null)[]>([null]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -53,6 +54,7 @@ export function useLocalHomeFeed(
   const prevFilterRef = useRef(filter);
   const filterGenerationRef = useRef(0);
   const { flushOutboxNow } = useArticleOutboxSync(userId);
+  const activeUserId = isActive ? userId : undefined;
 
   // Synchronous filter-scoped cursors: use [null] immediately when filter changes
   // so we never run queries with stale cursors from a different tab
@@ -77,8 +79,8 @@ export function useLocalHomeFeed(
   // ---------------------------------------------------------------------------
   // Reactive local read — SQLite is the rendering source of truth
   // ---------------------------------------------------------------------------
-  const { data: localArticles } = useLiveQuery(buildFeedQuery(userId ?? '', filter), [
-    userId,
+  const { data: localArticles } = useLiveQuery(buildFeedQuery(activeUserId ?? '', filter), [
+    activeUserId,
     filter,
   ]);
 
@@ -86,7 +88,7 @@ export function useLocalHomeFeed(
   // Convex background sync — live subscriptions materialised into SQLite
   // ---------------------------------------------------------------------------
   const pageQueries = useQueries({
-    queries: userId
+    queries: activeUserId
       ? effectiveCursors.map((cursor) => ({
           ...convexQuery(api.articles.listUserArticles, {
             filter,
@@ -104,7 +106,7 @@ export function useLocalHomeFeed(
   // Keep first pages of non-active filters reactive so remote status flips
   // still get materialized locally even when an item disappears from current filter pages.
   const backgroundPageQueries = useQueries({
-    queries: userId
+    queries: activeUserId
       ? backgroundFilters.map((backgroundFilter) => ({
           ...convexQuery(api.articles.listUserArticles, {
             filter: backgroundFilter,
@@ -150,17 +152,23 @@ export function useLocalHomeFeed(
   }, [pageQueries, filter, backgroundPageQueries, backgroundFilters]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!activeUserId) return;
 
     const generationAtStart = filterGenerationRef.current;
 
     void (async () => {
       for (const item of pageDataToUpsert) {
         if (filterGenerationRef.current !== generationAtStart) return;
-        await upsertServerPage(userId, item.page, item.filter, item.continueCursor, item.isDone);
+        await upsertServerPage(
+          activeUserId,
+          item.page,
+          item.filter,
+          item.continueCursor,
+          item.isDone
+        );
       }
     })();
-  }, [pageDataToUpsert, userId]);
+  }, [activeUserId, pageDataToUpsert]);
 
   // ---------------------------------------------------------------------------
   // Pagination

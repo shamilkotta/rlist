@@ -23,7 +23,7 @@ export default function AppLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, freezeOnBlur: true }}>
       <Stack.Screen name="home" />
       <Stack.Screen
         name="search"

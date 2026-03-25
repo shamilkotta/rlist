@@ -1,4 +1,5 @@
 import { convexQuery } from '@convex-dev/react-query';
+import { useIsFocused } from '@react-navigation/native';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
@@ -36,6 +37,7 @@ type HomeListItem =
 
 export default function HomeScreen() {
   const router = useRouter();
+  const isFocused = useIsFocused();
   const { data: session } = authClient.useSession();
   const { colorScheme } = useTheme();
   const c = useAppColors();
@@ -51,11 +53,11 @@ export default function HomeScreen() {
 
   const { data: availableTags = [] } = useQuery({
     ...convexQuery(api.articles.listUserTags, { filter }),
-    enabled: !!userId,
+    enabled: !!userId && isFocused,
   });
 
   const { articles, status, loadMore, toggleRead, toggleArchive, deleteArticle, updateTags } =
-    useLocalHomeFeed(userId, filter, selectedTags);
+    useLocalHomeFeed(userId, filter, selectedTags, isFocused);
 
   const handleFilterChange = useCallback((newFilter: TabFilter) => {
     setFilter(newFilter);
