@@ -9,21 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailSentRouteImport } from './routes/verify-email-sent'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrivacyIndexRouteImport } from './routes/privacy/index'
 import { Route as PrivacyChromeExtensionRouteImport } from './routes/privacy/chrome-extension'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const VerifyEmailSentRoute = VerifyEmailSentRouteImport.update({
+  id: '/verify-email-sent',
+  path: '/verify-email-sent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,16 +67,22 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-email-sent': typeof VerifyEmailSentRoute
   '/privacy/chrome-extension': typeof PrivacyChromeExtensionRoute
   '/privacy/': typeof PrivacyIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-email-sent': typeof VerifyEmailSentRoute
   '/privacy/chrome-extension': typeof PrivacyChromeExtensionRoute
   '/privacy': typeof PrivacyIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -66,8 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-email-sent': typeof VerifyEmailSentRoute
   '/privacy/chrome-extension': typeof PrivacyChromeExtensionRoute
   '/privacy/': typeof PrivacyIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -76,24 +103,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
+    | '/verify-email-sent'
     | '/privacy/chrome-extension'
     | '/privacy/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
+    | '/verify-email-sent'
     | '/privacy/chrome-extension'
     | '/privacy'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
+    | '/verify-email-sent'
     | '/privacy/chrome-extension'
     | '/privacy/'
     | '/api/auth/$'
@@ -101,8 +137,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  VerifyEmailSentRoute: typeof VerifyEmailSentRoute
   PrivacyChromeExtensionRoute: typeof PrivacyChromeExtensionRoute
   PrivacyIndexRoute: typeof PrivacyIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -110,6 +149,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email-sent': {
+      id: '/verify-email-sent'
+      path: '/verify-email-sent'
+      fullPath: '/verify-email-sent'
+      preLoaderRoute: typeof VerifyEmailSentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -117,11 +163,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -157,8 +217,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  VerifyEmailSentRoute: VerifyEmailSentRoute,
   PrivacyChromeExtensionRoute: PrivacyChromeExtensionRoute,
   PrivacyIndexRoute: PrivacyIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

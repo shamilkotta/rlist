@@ -2,7 +2,7 @@ import { AuthFormLayout } from '@/components/AuthFormLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useEmailAuth } from '@/hooks/use-email-auth';
-import { createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,7 +16,15 @@ export const Route = createFileRoute('/login')({
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { submit, isLoading, error } = useEmailAuth('login');
+  const {
+    submit,
+    isLoading,
+    error,
+    needsEmailVerification,
+    isResendingVerification,
+    verificationResendSecondsLeft,
+    resendVerificationEmail,
+  } = useEmailAuth('login');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,12 +56,20 @@ function LoginPage() {
           />
         </div>
         <div className="space-y-2">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Password
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Password
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-primary hover:underline underline-offset-4"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"
@@ -69,6 +85,24 @@ function LoginPage() {
           <div className="p-3 text-sm font-medium text-destructive bg-destructive/10 rounded-md">
             {error}
           </div>
+        )}
+
+        {needsEmailVerification && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11"
+            disabled={isResendingVerification || !email.trim() || verificationResendSecondsLeft > 0}
+            onClick={() => void resendVerificationEmail(email)}
+          >
+            {isResendingVerification ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : verificationResendSecondsLeft > 0 ? (
+              `Resend in ${verificationResendSecondsLeft}s`
+            ) : (
+              'Resend verification email'
+            )}
+          </Button>
         )}
 
         <Button type="submit" className="w-full h-11" disabled={isLoading}>
