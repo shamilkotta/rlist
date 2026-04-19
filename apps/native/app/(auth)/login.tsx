@@ -56,6 +56,12 @@ export default function LoginScreen() {
 
       <PasswordField label="Password" value={password} onChangeText={setPassword} />
 
+      <View style={styles.forgotRow}>
+        <Pressable onPress={() => router.push('/forgot-password' as never)} hitSlop={8}>
+          <Text style={[styles.forgotLink, { color: textColor }]}>Forgot password?</Text>
+        </Pressable>
+      </View>
+
       {error ? <Text style={[styles.errorText, { color: errorColor }]}>{error}</Text> : null}
 
       <Pressable
@@ -93,6 +99,14 @@ const styles = StyleSheet.create({
   },
   submitText: {
     fontSize: 15,
+    fontWeight: '600',
+    fontFamily: 'Geist-SemiBold',
+  },
+  forgotRow: {
+    alignItems: 'flex-end',
+  },
+  forgotLink: {
+    fontSize: 14,
     fontWeight: '600',
     fontFamily: 'Geist-SemiBold',
   },
