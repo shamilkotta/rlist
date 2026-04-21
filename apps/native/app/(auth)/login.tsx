@@ -33,7 +33,7 @@ export default function LoginScreen() {
       });
 
       if (response.error) {
-        setError(toUserFacingAuthError(response.error.message));
+        setError(toUserFacingAuthError(response.error.message ?? '', response.error.status));
         return;
       }
 
