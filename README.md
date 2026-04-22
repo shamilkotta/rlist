@@ -1,116 +1,79 @@
 # rlist
 
-A modern monorepo with TanStack Start frontend and Convex backend.
+rlist is a read-later style product for saving and searching articles across a web app, a mobile app, and a browser extension, backed by a single Convex API. The repo is a pnpm and Turborepo monorepo: shared backend code lives in `packages/api`, and each client in `apps/` connects to the same Convex deployment.
 
-## Tech Stack
-
-- **Frontend**: [TanStack Start](https://tanstack.com/start/latest) (React)
-- **Backend**: [Convex](https://convex.dev)
-- **Package Manager**: pnpm
-- **Monorepo Tool**: Turborepo
-- **Linting/Formatting**: Biome
-- **Git Hooks**: Husky + lint-staged
-
-## Project Structure
+## Project structure
 
 ```
 rlist/
 ├── apps/
-│   ├── web/              # TanStack Start web app
-│   └── native/           # Future React Native app
+│   ├── web/            # rlist-web — TanStack Start web app (Vite)
+│   ├── native/         # Expo (React Native) mobile app
+│   └── extension/      # rlist-extension — Chrome extension (Vite)
 ├── packages/
-│   ├── ui/               # Shared UI components
-│   └── utils/            # Shared utilities
-├── convex/               # Convex backend functions
-├── turbo.json            # Turborepo config
-├── biome.json            # Biome linting/formatting
-└── pnpm-workspace.yaml   # Workspace definition
+│   └── api/            # @rlist/api — Convex backend (shared by all clients)
+├── turbo.json
+├── biome.json
+├── pnpm-workspace.yaml
+└── package.json
 ```
 
-## Getting Started
+## Apps and packages
 
-### Prerequisites
+| Name | Path | Role |
+|------|------|------|
+| **Web** | `apps/web` | Main web client; TanStack Router/Start, deployable with Wrangler. |
+| **Native** | `apps/native` | iOS/Android with Expo Router; local SQLite (Drizzle) plus Convex sync. |
+| **Extension** | `apps/extension` | Browser extension (popup, background, content scripts). |
+| **API** | `packages/api` | Convex project: schema, queries, mutations, HTTP routes, auth. |
+
+See each package’s README for folder layout, environment variables, and commands.
+
+## Prerequisites
 
 - Node.js 20+
-- pnpm 9+
+- pnpm 9+ (see `packageManager` in `package.json`)
 
-### Installation
+## Install
 
 ```bash
-# Install dependencies
 pnpm install
 ```
 
-### Development
+## Development
 
-1. **Start Convex backend** (requires Convex account):
+The API must be running (or have a deployed URL) so clients can point `VITE_CONVEX_URL` / `EXPO_PUBLIC_CONVEX_URL` at it.
 
-```bash
-# First time setup - this will prompt you to log in and create a project
-pnpm dev:convex
-```
-
-This will output a Convex URL. Copy it.
-
-2. **Configure environment**:
-
-Create `apps/web/.env.local`:
-
-```env
-VITE_CONVEX_URL=<your-convex-url>
-```
-
-3. **Start the web app**:
+From the repository root, this starts the Convex dev server and the web app (the extension is excluded from this default; see `apps/extension`):
 
 ```bash
 pnpm dev
 ```
 
-The app will be available at http://localhost:3000
+- Web: http://localhost:3000
+- Convex CLI prints a deployment URL; use it in each app’s env files as documented in those READMEs.
 
-## Scripts
+Other useful root scripts:
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start all dev servers |
-| `pnpm dev:convex` | Start Convex dev server |
-| `pnpm build` | Build all packages |
-| `pnpm lint` | Lint all packages |
-| `pnpm format` | Format all files |
-| `pnpm check` | Run Biome checks |
-| `pnpm typecheck` | Type check all packages |
+| `pnpm dev:extension` | Watch-build the browser extension. |
+| `pnpm build` | Build all packages via Turbo. |
+| `pnpm build:web` | Build only `rlist-web`. |
+| `pnpm build:extension` | Build the extension (and `rlist.zip` bundle). |
+| `pnpm deploy:web` | Build and deploy the web app (Wrangler). |
+| `pnpm preview:web` | Production build then Wrangler dev preview. |
+| `pnpm lint` | Lint across the repo. |
+| `pnpm check` / `pnpm format` | Biome check or format. |
+| `pnpm typecheck` | Typecheck all packages that define the task. |
 
-## Shared Packages
+## Tech stack (overview)
 
-### @repo/ui
-
-Shared React UI components. Import like:
-
-```tsx
-import { Button } from '@repo/ui';
-```
-
-### @repo/utils
-
-Shared utilities and constants. Import like:
-
-```tsx
-import { cn, APP_NAME } from '@repo/utils';
-```
-
-## Adding React Native (Future)
-
-When ready to add React Native:
-
-1. Create an Expo app in `apps/native`
-2. Configure Metro to resolve workspace packages
-3. If Metro has issues, add `.npmrc` with `shamefully-hoist=true`
-
-## Notes
-
-- **Generated Files**: TanStack Router generates `routeTree.gen.ts` and Convex generates `_generated/` on first dev run. TypeScript errors are expected before running dev servers.
-- **Convex Account**: You'll need a Convex account to run the backend
-- **TanStack Start RC**: Currently in Release Candidate, APIs are stable but pin versions
+- **Web**: TanStack Start, React, Vite, Tailwind, Cloudflare (Wrangler).
+- **API**: [Convex](https://convex.dev) (`packages/api`), Better Auth integration.
+- **Monorepo**: pnpm workspaces, Turborepo, Biome.
+- **Native**: Expo, Expo Router, Drizzle + SQLite.
+- **Extension**: Vite, CRX plugin.
 
 ## License
 
