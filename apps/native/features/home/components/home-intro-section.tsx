@@ -1,4 +1,4 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { PaginationStatus, TabFilter } from '@/features/home/home-feed.types';
 import { useAppColors } from '@/hooks/use-theme';
@@ -18,19 +18,12 @@ type HomeIntroSectionProps = {
 export function HomeIntroSection({ filter, status, articleCount }: HomeIntroSectionProps) {
   const c = useAppColors();
 
-  const isLoading =
-    articleCount === 0 && (status === 'LoadingFirstPage' || status === 'LoadingMore');
   const isEmpty = articleCount === 0 && status !== 'LoadingFirstPage' && status !== 'LoadingMore';
 
   return (
     <View>
       <Text style={[styles.title, { color: c.text }]}>{TAB_HEADINGS[filter]}</Text>
 
-      {isLoading ? (
-        <View style={styles.loadingList}>
-          <ActivityIndicator size="small" color={c.subtitle} />
-        </View>
-      ) : null}
       {isEmpty ? (
         <Text style={[styles.emptyText, { color: c.subtitle }]}>No articles in this view yet.</Text>
       ) : null}
@@ -61,11 +54,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontFamily: 'Geist',
-  },
-  loadingList: {
-    marginTop: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   emptyText: {
     marginTop: 18,

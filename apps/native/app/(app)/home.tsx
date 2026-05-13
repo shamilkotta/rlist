@@ -20,6 +20,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   ArticleActionsSheet,
   ArticleCard,
+  ArticleCardSkeleton,
   DeleteArticleDialog,
   HomeFilterTabs,
   HomeHeader,
@@ -34,6 +35,7 @@ import { normalizeTags } from '@/lib/tags';
 type HomeListItem =
   | { type: 'filter' }
   | { type: 'intro' }
+  | { type: 'article-skeletons' }
   | { type: 'article'; article: DisplayArticle };
 
 export default function HomeScreen() {
@@ -123,14 +125,13 @@ export default function HomeScreen() {
     }
   }, [status, loadMore]);
 
-  const listData = useMemo<HomeListItem[]>(
-    () => [
-      { type: 'filter' as const },
-      { type: 'intro' as const },
-      ...articles.map((article): HomeListItem => ({ type: 'article', article })),
-    ],
-    [articles]
-  );
+  const listData = useMemo<HomeListItem[]>(() => {
+    const head: HomeListItem[] = [{ type: 'filter' }, { type: 'intro' }];
+    if (status === 'LoadingFirstPage') {
+      return [...head, { type: 'article-skeletons' }];
+    }
+    return [...head, ...articles.map((article): HomeListItem => ({ type: 'article', article }))];
+  }, [articles, status]);
 
   const renderListItem = useCallback(
     ({ item }: { item: HomeListItem }) => {
@@ -151,6 +152,10 @@ export default function HomeScreen() {
 
       if (item.type === 'intro') {
         return <HomeIntroSection filter={filter} status={status} articleCount={articles.length} />;
+      }
+
+      if (item.type === 'article-skeletons') {
+        return <ArticleCardSkeleton />;
       }
 
       return (
@@ -260,6 +265,7 @@ export default function HomeScreen() {
 function keyExtractor(item: HomeListItem) {
   if (item.type === 'filter') return 'filter';
   if (item.type === 'intro') return 'intro';
+  if (item.type === 'article-skeletons') return 'article-skeletons';
   return item.article.articleId;
 }
 

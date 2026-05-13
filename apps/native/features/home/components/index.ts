@@ -1,5 +1,6 @@
 export { ArticleActionsSheet } from './article-actions-sheet';
 export { ArticleCard } from './article-card';
+export { ArticleCardSkeleton } from './article-card-skeleton';
 export { DeleteArticleDialog } from './delete-article-dialog';
 export { HomeFilterTabs } from './home-filter-tabs';
 export { HomeHeader } from './home-header';
