@@ -77,10 +77,11 @@ export async function openSafeUrl(url: string): Promise<boolean> {
   if (!validatedUrl) {
     return false;
   }
-  const canOpen = await Linking.canOpenURL(validatedUrl);
-  if (canOpen) {
-    void Linking.openURL(validatedUrl);
+
+  try {
+    await Linking.openURL(validatedUrl);
     return true;
+  } catch {
+    return false;
   }
-  return false;
 }

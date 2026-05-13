@@ -10,17 +10,14 @@ import { authClient } from '@/lib/auth-client';
 import { signOutAndClear } from '@/lib/sign-out';
 
 export default function ProfileScreen() {
-  const router = useRouter();
+  const { back } = useRouter();
   const c = useAppColors();
   const { colorScheme } = useTheme();
   const { data: session } = authClient.useSession();
 
-  const userId = session?.user?.id;
-
   const handleSignOut = useCallback(async () => {
-    if (!userId) return;
-    await signOutAndClear(userId);
-  }, [userId]);
+    await signOutAndClear();
+  }, []);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: c.background }]}>
@@ -28,7 +25,7 @@ export default function ProfileScreen() {
 
       <View style={styles.container}>
         <View style={styles.topRow}>
-          <Pressable onPress={() => router.back()} hitSlop={8} style={styles.backButton}>
+          <Pressable onPress={back} hitSlop={8} style={styles.backButton}>
             <Feather name="chevron-left" size={20} color={c.text} />
             <Text style={[styles.backText, { color: c.text }]}>Back</Text>
           </Pressable>

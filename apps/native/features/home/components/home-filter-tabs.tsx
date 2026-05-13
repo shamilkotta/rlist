@@ -58,7 +58,7 @@ export function HomeFilterTabs({
               )}
             </Pressable>
           ))}
-          <Pressable style={styles.tagsDropdown} onPress={onToggleTagPanel}>
+          <Pressable style={styles.tagsDropdown} onPress={onToggleTagPanel} hitSlop={4}>
             <Text style={[styles.filterMuted, { color: isTagsActive ? c.text : c.subtitle }]}>
               Tags
             </Text>
@@ -142,7 +142,10 @@ export function HomeFilterTabs({
 }
 
 const styles = StyleSheet.create({
-  filterStickyWrapper: {},
+  filterStickyWrapper: {
+    zIndex: 10,
+    elevation: 10,
+  },
   divider: {
     width: '100%',
     height: StyleSheet.hairlineWidth,
@@ -177,7 +180,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 12,
+    paddingTop: 2,
+    paddingBottom: 12,
   },
   tagBadge: {
     borderRadius: 10,

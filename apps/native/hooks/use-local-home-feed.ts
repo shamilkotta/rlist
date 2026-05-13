@@ -1,45 +1,46 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
-import { useQueries } from '@tanstack/react-query';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
+import type { Id } from '@rlist/api/convex/_generated/dataModel';
+import { useMutation, useQueries } from '@tanstack/react-query';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  addOutboxItem,
-  buildFeedQuery,
-  markLocallyDeleted,
-  toggleLocalArchiveStatus,
-  toggleLocalReadStatus,
-  updateLocalTags,
-  upsertServerPage,
-} from '@/db/repositories/articles';
-import type { CachedArticle } from '@/db/schema';
-import { useArticleOutboxSync } from '@/hooks/use-article-outbox-sync';
-
 import type { DisplayArticle, PaginationStatus, TabFilter } from '@/features/home/home-feed.types';
+import { convexQueryClient, queryClient } from '@/lib/convex';
 
 export type { DisplayArticle, PaginationStatus, TabFilter };
 
 const PAGE_SIZE = 24;
 
-function toDisplayArticle(row: CachedArticle): DisplayArticle {
+type ServerArticle = {
+  articleId: Id<'articles'>;
+  url: string;
+  title: string | null;
+  description: string | null;
+  domain: string;
+  faviconUrl: string;
+  tags: string[];
+  isRead?: boolean;
+  isArchived?: boolean;
+  _creationTime: number;
+};
+
+function toDisplayArticle(article: ServerArticle): DisplayArticle {
   return {
-    articleId: row.articleId,
-    url: row.url,
-    title: row.title,
-    description: row.description,
-    domain: row.domain,
-    faviconUrl: row.faviconUrl,
-    tags: JSON.parse(row.tags) as string[],
-    isRead: row.isRead === 1,
-    isArchived: row.isArchived === 1,
-    creationTime: row.creationTime,
+    articleId: article.articleId,
+    url: article.url,
+    title: article.title,
+    description: article.description,
+    domain: article.domain,
+    faviconUrl: article.faviconUrl,
+    tags: article.tags,
+    isRead: article.isRead ?? false,
+    isArchived: article.isArchived ?? false,
+    creationTime: article._creationTime,
   };
 }
 
-function hasMatchingTag(articleTags: string[], selectedTags: string[]): boolean {
-  if (selectedTags.length === 0) return true;
-  return articleTags.some((tag) => selectedTags.includes(tag));
+function invalidateArticleQueries() {
+  void queryClient.invalidateQueries();
 }
 
 export function useLocalHomeFeed(
@@ -50,165 +51,48 @@ export function useLocalHomeFeed(
 ) {
   const [loadedCursors, setLoadedCursors] = useState<(string | null)[]>([null]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const pendingPagesToLoadRef = useRef(0);
-  const prevFilterRef = useRef(filter);
-  const filterGenerationRef = useRef(0);
-  const { flushOutboxNow } = useArticleOutboxSync(userId);
+  const queryScope = `${filter}:${selectedTags.join('|')}`;
+  const prevQueryScopeRef = useRef(queryScope);
   const activeUserId = isActive ? userId : undefined;
 
-  // Synchronous filter-scoped cursors: use [null] immediately when filter changes
-  // so we never run queries with stale cursors from a different tab
-  const filterJustChanged = prevFilterRef.current !== filter;
-  if (filterJustChanged) {
-    prevFilterRef.current = filter;
-    filterGenerationRef.current += 1;
+  const queryScopeChanged = prevQueryScopeRef.current !== queryScope;
+  if (queryScopeChanged) {
+    prevQueryScopeRef.current = queryScope;
   }
+
   const effectiveCursors = useMemo(
-    () => (filterJustChanged ? [null] : loadedCursors),
-    [filterJustChanged, loadedCursors]
+    () => (queryScopeChanged ? [null] : loadedCursors),
+    [queryScopeChanged, loadedCursors]
   );
 
   useLayoutEffect(() => {
-    if (filterJustChanged) {
+    if (queryScopeChanged) {
       setLoadedCursors([null]);
       setIsLoadingMore(false);
-      pendingPagesToLoadRef.current = 0;
     }
-  }, [filterJustChanged]);
+  }, [queryScopeChanged]);
 
-  // ---------------------------------------------------------------------------
-  // Reactive local read — SQLite is the rendering source of truth
-  // ---------------------------------------------------------------------------
-  const { data: localArticles } = useLiveQuery(buildFeedQuery(activeUserId ?? '', filter), [
-    activeUserId,
-    filter,
-  ]);
-
-  // ---------------------------------------------------------------------------
-  // Convex background sync — live subscriptions materialised into SQLite
-  // ---------------------------------------------------------------------------
   const pageQueries = useQueries({
     queries: activeUserId
       ? effectiveCursors.map((cursor) => ({
           ...convexQuery(api.articles.listUserArticles, {
             filter,
+            tags: selectedTags,
             paginationOpts: { numItems: PAGE_SIZE, cursor },
           }),
         }))
       : [],
   });
 
-  const backgroundFilters = useMemo(
-    () => (['unread', 'all', 'archive'] as TabFilter[]).filter((candidate) => candidate !== filter),
-    [filter]
+  const pages = useMemo(
+    () => pageQueries.map((query) => query.data).filter((page) => page !== undefined),
+    [pageQueries]
   );
 
-  // Keep first pages of non-active filters reactive so remote status flips
-  // still get materialized locally even when an item disappears from current filter pages.
-  const backgroundPageQueries = useQueries({
-    queries: activeUserId
-      ? backgroundFilters.map((backgroundFilter) => ({
-          ...convexQuery(api.articles.listUserArticles, {
-            filter: backgroundFilter,
-            paginationOpts: { numItems: PAGE_SIZE, cursor: null },
-          }),
-        }))
-      : [],
-  });
-
-  const pageDataToUpsert = useMemo(() => {
-    const activeFilterPages = pageQueries
-      .filter((q): q is typeof q & { data: NonNullable<typeof q.data> } => !!q.data)
-      .map((q) => ({
-        filter,
-        page: q.data.page,
-        continueCursor: q.data.continueCursor,
-        isDone: q.data.isDone,
-      }));
-
-    const backgroundFilterPages = backgroundPageQueries
-      .map((query, index) => ({
-        query,
-        backgroundFilter: backgroundFilters[index],
-      }))
-      .filter(
-        (
-          item
-        ): item is {
-          query: (typeof backgroundPageQueries)[number] & {
-            data: NonNullable<(typeof backgroundPageQueries)[number]['data']>;
-          };
-          backgroundFilter: TabFilter;
-        } => !!item.query.data && !!item.backgroundFilter
-      )
-      .map((item) => ({
-        filter: item.backgroundFilter,
-        page: item.query.data.page,
-        continueCursor: item.query.data.continueCursor,
-        isDone: item.query.data.isDone,
-      }));
-
-    return [...activeFilterPages, ...backgroundFilterPages];
-  }, [pageQueries, filter, backgroundPageQueries, backgroundFilters]);
-
-  useEffect(() => {
-    if (!activeUserId) return;
-
-    const generationAtStart = filterGenerationRef.current;
-
-    void (async () => {
-      for (const item of pageDataToUpsert) {
-        if (filterGenerationRef.current !== generationAtStart) return;
-        await upsertServerPage(
-          activeUserId,
-          item.page,
-          item.filter,
-          item.continueCursor,
-          item.isDone
-        );
-      }
-    })();
-  }, [activeUserId, pageDataToUpsert]);
-
-  // ---------------------------------------------------------------------------
-  // Pagination
-  // ---------------------------------------------------------------------------
-  const lastPage = useMemo(() => {
-    return pageQueries
-      .map((q) => q.data)
-      .filter(Boolean)
-      .at(-1);
-  }, [pageQueries]);
-
-  useEffect(() => {
-    if (filterJustChanged) return;
-    if (pendingPagesToLoadRef.current <= 0 || !lastPage) return;
-    if (lastPage.isDone) {
-      pendingPagesToLoadRef.current = 0;
-      setIsLoadingMore(false);
-      return;
-    }
-    const nextCursor = lastPage.continueCursor;
-    if (effectiveCursors.includes(nextCursor)) {
-      pendingPagesToLoadRef.current = 0;
-      setIsLoadingMore(false);
-      return;
-    }
-    pendingPagesToLoadRef.current -= 1;
-    setLoadedCursors((prev) => [...prev, nextCursor]);
-  }, [filterJustChanged, lastPage, effectiveCursors]);
-
-  useEffect(() => {
-    if (!isLoadingMore) return;
-    const lastQuery = pageQueries.at(-1);
-    if (lastQuery && !lastQuery.isPending) {
-      setIsLoadingMore(false);
-    }
-  }, [isLoadingMore, pageQueries]);
+  const articles = useMemo(() => pages.flatMap((page) => page.page.map(toDisplayArticle)), [pages]);
 
   const loadMore = useCallback(() => {
-    const resolvedPages = pageQueries.map((q) => q.data).filter(Boolean);
-    const latestPage = resolvedPages.at(-1);
+    const latestPage = pages.at(-1);
     if (!latestPage || latestPage.isDone) return;
 
     const nextCursor = latestPage.continueCursor;
@@ -216,84 +100,88 @@ export function useLocalHomeFeed(
 
     setIsLoadingMore(true);
     setLoadedCursors((prev) => [...prev, nextCursor]);
-  }, [loadedCursors, pageQueries]);
+  }, [loadedCursors, pages]);
 
-  // ---------------------------------------------------------------------------
-  // Status
-  // ---------------------------------------------------------------------------
+  const lastQuery = pageQueries.at(-1);
+  useEffect(() => {
+    if (isLoadingMore && lastQuery && !lastQuery.isPending) {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, lastQuery]);
+
   const status = useMemo<PaginationStatus>(() => {
     const firstQuery = pageQueries.at(0);
-    const hasLocal = (localArticles?.length ?? 0) > 0;
-
-    if (!hasLocal && firstQuery?.isPending && !firstQuery.data) {
+    if (articles.length === 0 && firstQuery?.isPending && !firstQuery.data) {
       return 'LoadingFirstPage';
     }
     if (isLoadingMore) return 'LoadingMore';
 
-    const lastResolved = pageQueries
-      .map((q) => q.data)
-      .filter(Boolean)
-      .at(-1);
-
+    const lastResolved = pages.at(-1);
     if (lastResolved && !lastResolved.isDone) return 'CanLoadMore';
-    if (!lastResolved && hasLocal) return 'CanLoadMore';
 
     return 'Exhausted';
-  }, [pageQueries, localArticles, isLoadingMore]);
+  }, [articles.length, isLoadingMore, pageQueries, pages]);
 
-  // ---------------------------------------------------------------------------
-  // Action handlers — optimistic local update + outbox enqueue
-  // ---------------------------------------------------------------------------
+  const toggleReadMutation = useMutation({
+    mutationFn: (articleId: string) =>
+      convexQueryClient.convexClient.mutation(api.articles.toggleReadStatus, {
+        articleId: articleId as Id<'articles'>,
+      }),
+    onSettled: invalidateArticleQueries,
+  });
+
+  const toggleArchiveMutation = useMutation({
+    mutationFn: (articleId: string) =>
+      convexQueryClient.convexClient.mutation(api.articles.toggleArchiveStatus, {
+        articleId: articleId as Id<'articles'>,
+      }),
+    onSettled: invalidateArticleQueries,
+  });
+
+  const deleteArticleMutation = useMutation({
+    mutationFn: (articleId: string) =>
+      convexQueryClient.convexClient.mutation(api.articles.deleteArticle, {
+        articleId: articleId as Id<'articles'>,
+      }),
+    onSettled: invalidateArticleQueries,
+  });
+
+  const updateTagsMutation = useMutation({
+    mutationFn: ({ articleId, tags }: { articleId: string; tags: string[] }) =>
+      convexQueryClient.convexClient.mutation(api.articles.updateArticleTags, {
+        articleId: articleId as Id<'articles'>,
+        tags,
+      }),
+    onSettled: invalidateArticleQueries,
+  });
+
   const toggleRead = useCallback(
     async (articleId: string) => {
-      if (!userId) return;
-      // Enqueue first so server upserts know this row has a pending local override.
-      await addOutboxItem('toggleReadStatus', articleId, userId);
-      await toggleLocalReadStatus(articleId, userId);
-      void flushOutboxNow();
+      await toggleReadMutation.mutateAsync(articleId);
     },
-    [userId, flushOutboxNow]
+    [toggleReadMutation]
   );
 
   const toggleArchive = useCallback(
     async (articleId: string) => {
-      if (!userId) return;
-      // Enqueue first so server upserts know this row has a pending local override.
-      await addOutboxItem('toggleArchiveStatus', articleId, userId);
-      await toggleLocalArchiveStatus(articleId, userId);
-      void flushOutboxNow();
+      await toggleArchiveMutation.mutateAsync(articleId);
     },
-    [userId, flushOutboxNow]
+    [toggleArchiveMutation]
   );
 
   const deleteArticle = useCallback(
     async (articleId: string) => {
-      if (!userId) return;
-      await markLocallyDeleted(articleId, userId);
-      await addOutboxItem('deleteArticle', articleId, userId);
-      void flushOutboxNow();
+      await deleteArticleMutation.mutateAsync(articleId);
     },
-    [userId, flushOutboxNow]
+    [deleteArticleMutation]
   );
 
   const updateTags = useCallback(
     async (articleId: string, tags: string[]) => {
-      if (!userId) return;
-      await updateLocalTags(articleId, userId, tags);
-      await addOutboxItem('updateTags', articleId, userId, JSON.stringify(tags));
-      void flushOutboxNow();
+      await updateTagsMutation.mutateAsync({ articleId, tags });
     },
-    [userId, flushOutboxNow]
+    [updateTagsMutation]
   );
-
-  // ---------------------------------------------------------------------------
-  // Result — filter by selected tags locally
-  // ---------------------------------------------------------------------------
-  const articles = useMemo(() => {
-    const allArticles = (localArticles ?? []).map(toDisplayArticle);
-    if (selectedTags.length === 0) return allArticles;
-    return allArticles.filter((article) => hasMatchingTag(article.tags, selectedTags));
-  }, [localArticles, selectedTags]);
 
   return {
     articles,

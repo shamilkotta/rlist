@@ -5,8 +5,9 @@ import { ConvexError } from 'convex/values';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  InteractionManager,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDebounce } from '@/hooks/use-debounce';
 import { useAppColors, useTheme } from '@/hooks/use-theme';
+import { queryClient } from '@/lib/convex';
 import { getDomain, validateArticleUrl } from '@/lib/url';
 import { api } from '@rlist/api/convex/_generated/api';
 
@@ -31,10 +33,11 @@ function normalizeTag(value: string): string {
 }
 
 export default function SaveUrlScreen() {
-  const router = useRouter();
+  const { back } = useRouter();
   const { sharedUrl } = useLocalSearchParams<{ sharedUrl?: string }>();
   const c = useAppColors();
   const { colorScheme } = useTheme();
+  const urlInputRef = useRef<TextInput>(null);
   const [urlInput, setUrlInput] = useState(sharedUrl ?? '');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -45,6 +48,14 @@ export default function SaveUrlScreen() {
       setUrlInput(sharedUrl);
     }
   }, [sharedUrl]);
+
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      urlInputRef.current?.focus();
+    });
+
+    return () => task.cancel();
+  }, []);
 
   const normalizedUrlInput = useMemo(() => validateArticleUrl(urlInput), [urlInput]);
   const showUrlPreview = normalizedUrlInput !== null;
@@ -69,47 +80,49 @@ export default function SaveUrlScreen() {
     mutationFn: addArticle,
   });
 
-  const handleUrlInputChange = (value: string) => {
+  const handleUrlInputChange = useCallback((value: string) => {
     setSubmitError(null);
-    const trimmed = value.trim();
-    setUrlInput(trimmed);
-  };
+    setUrlInput(value);
+  }, []);
 
-  const removeTag = (tagToRemove: string) => {
+  const removeTag = useCallback((tagToRemove: string) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
-  };
+  }, []);
 
-  const commitTagInput = () => {
+  const commitTagInput = useCallback(() => {
     const newTag = normalizeTag(tagInput);
     if (!newTag || tags.length >= MAX_TAGS || tags.includes(newTag)) {
       return;
     }
     setTags((prev) => [...prev, newTag]);
     setTagInput('');
-  };
+  }, [tagInput, tags]);
 
-  const handleTagInputChange = (value: string) => {
-    if (value.includes(',')) {
-      const candidate = normalizeTag(value.split(',')[0] ?? '');
-      if (candidate && tags.length < MAX_TAGS && !tags.includes(candidate)) {
-        setTags((prev) => [...prev, candidate]);
+  const handleTagInputChange = useCallback(
+    (value: string) => {
+      if (value.includes(',')) {
+        const candidate = normalizeTag(value.split(',')[0] ?? '');
+        if (candidate && tags.length < MAX_TAGS && !tags.includes(candidate)) {
+          setTags((prev) => [...prev, candidate]);
+        }
+        setTagInput('');
+        return;
       }
-      setTagInput('');
-      return;
-    }
-    if (value.length <= TAG_MAX_LENGTH) {
-      setTagInput(value);
-    }
-  };
+      if (value.length <= TAG_MAX_LENGTH) {
+        setTagInput(value);
+      }
+    },
+    [tags]
+  );
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setUrlInput('');
     setTags([]);
     setTagInput('');
     setSubmitError(null);
-  };
+  }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     setSubmitError(null);
     const urlToSubmit = debouncedUrl || urlInput;
     const validated = validateArticleUrl(urlToSubmit);
@@ -122,8 +135,9 @@ export default function SaveUrlScreen() {
       { url: validated, tags },
       {
         onSuccess: () => {
+          void queryClient.invalidateQueries();
           resetState();
-          router.back();
+          back();
         },
         onError: (error) => {
           if (
@@ -152,7 +166,7 @@ export default function SaveUrlScreen() {
         },
       }
     );
-  };
+  }, [addArticleMutation, back, debouncedUrl, resetState, tags, urlInput]);
 
   const hasMetadataError = showUrlPreview && isError && !metadata;
   const domainFallback = useMemo(() => getDomain(urlInput), [urlInput]);
@@ -168,7 +182,7 @@ export default function SaveUrlScreen() {
           <View style={[styles.inputRow, { borderColor: c.border }]}>
             <Feather name="link" size={18} color={c.subtitle} />
             <TextInput
-              autoFocus
+              ref={urlInputRef}
               value={urlInput}
               onChangeText={handleUrlInputChange}
               placeholder="Paste a URL to save..."
@@ -181,7 +195,7 @@ export default function SaveUrlScreen() {
               keyboardType="url"
               onSubmitEditing={handleSubmit}
             />
-            <Pressable onPress={() => router.back()} hitSlop={8}>
+            <Pressable onPress={back} hitSlop={8}>
               <Text style={[styles.cancelText, { color: c.text }]}>Cancel</Text>
             </Pressable>
           </View>

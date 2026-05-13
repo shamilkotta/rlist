@@ -65,21 +65,61 @@ function extractMetaContent(html: string, property: string): string | null {
   return null;
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  amp: '&',
+  apos: "'",
+  gt: '>',
+  lt: '<',
+  nbsp: ' ',
+  quot: '"',
+};
+
+function decodeHtmlEntities(value: string): string {
+  return value.replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (entity, encoded: string) => {
+    const lower = encoded.toLowerCase();
+    if (lower.startsWith('#x')) {
+      const codePoint = Number.parseInt(lower.slice(2), 16);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : entity;
+    }
+    if (lower.startsWith('#')) {
+      const codePoint = Number.parseInt(lower.slice(1), 10);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : entity;
+    }
+    return HTML_ENTITIES[lower] ?? entity;
+  });
+}
+
+function decodePercentEncoding(value: string): string {
+  try {
+    return /%[\da-f]{2}/i.test(value) ? decodeURIComponent(value) : value;
+  } catch {
+    return value;
+  }
+}
+
+function normalizeMetadataText(value: string | null): string | null {
+  if (!value) return null;
+
+  const normalized = decodeHtmlEntities(decodePercentEncoding(value)).replace(/\s+/g, ' ').trim();
+
+  return normalized || null;
+}
+
 function extractTitle(html: string): string | null {
-  return (
+  return normalizeMetadataText(
     extractMetaContent(html, 'og:title') ??
-    extractMetaContent(html, 'twitter:title') ??
-    html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() ??
-    null
+      extractMetaContent(html, 'twitter:title') ??
+      html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() ??
+      null
   );
 }
 
 function extractDescription(html: string): string | null {
-  return (
+  return normalizeMetadataText(
     extractMetaContent(html, 'og:description') ??
-    extractMetaContent(html, 'description') ??
-    extractMetaContent(html, 'twitter:description') ??
-    null
+      extractMetaContent(html, 'description') ??
+      extractMetaContent(html, 'twitter:description') ??
+      null
   );
 }
 

@@ -1,1 +1,0 @@
-ALTER TABLE `sync_outbox` ADD `payload` text;
