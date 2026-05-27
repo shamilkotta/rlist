@@ -10,29 +10,20 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { authClient } from '@/lib/auth-client';
 import { Link } from '@tanstack/react-router';
-import {
-  ChevronUp,
-  Home,
-  LayoutDashboard,
-  Library,
-  Network,
-  PieChart,
-  SquareFunction,
-  StickyNote,
-} from 'lucide-react';
+import { ChevronUp, Home, User } from 'lucide-react';
 
 import { UserAccountMenu } from '@/components/UserAccountMenu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export function AppSidebar() {
   const isMobile = useIsMobile();
+  const { data: session } = authClient.useSession();
+  const { setOpenMobile } = useSidebar();
 
   if (!isMobile) {
     return null;
@@ -52,89 +43,32 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Home">
-                  <Link to="/">
+                  <Link
+                    to="/"
+                    onClick={() => {
+                      setOpenMobile(false);
+                    }}
+                  >
                     <Home />
                     <span>Home</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Dashboard">
-                  <Link to="/">
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Discover">
-                  <Link to="/">
-                    <Library />
-                    <span>Discover</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Analytics">
-                  <Link to="/">
-                    <PieChart />
-                    <span>Analytics</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Server Functions">
-                  <Link to="/">
-                    <SquareFunction />
-                    <span>Start - Server Functions</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="API Request">
-                  <Link to="/">
-                    <Network />
-                    <span>Start - API Request</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="SSR Demos">
-                  <Link to="/">
-                    <StickyNote />
-                    <span>Start - SSR Demos</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link to="/">
-                        <span>SPA Mode</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link to="/">
-                        <span>Full SSR</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link to="/">
-                        <span>Data Only</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
+              {session && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Profile">
+                    <Link
+                      to="/profile"
+                      onClick={() => {
+                        setOpenMobile(false);
+                      }}
+                    >
+                      <User />
+                      <span>Profile</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -146,15 +80,30 @@ export function AppSidebar() {
 
 function SidebarFooterComponent() {
   const { data: session } = authClient.useSession();
+  const { setOpenMobile } = useSidebar();
 
   if (!session) {
     return (
       <SidebarFooter className="p-4 border-t border-border space-y-2">
         <Button variant="outline" size="sm" asChild className="w-full">
-          <Link to="/login">Sign in</Link>
+          <Link
+            to="/login"
+            onClick={() => {
+              setOpenMobile(false);
+            }}
+          >
+            Sign in
+          </Link>
         </Button>
         <Button size="sm" asChild className="w-full">
-          <Link to="/signup">Get Started</Link>
+          <Link
+            to="/signup"
+            onClick={() => {
+              setOpenMobile(false);
+            }}
+          >
+            Get Started
+          </Link>
         </Button>
       </SidebarFooter>
     );

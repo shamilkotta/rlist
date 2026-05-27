@@ -1,26 +1,23 @@
+import { AppHeader } from '@/components/AppHeader';
 import { AppLogo } from '@/components/AppLogo';
 import { LandingPage } from '@/components/LandingPage';
-import { UserAccountMenu } from '@/components/UserAccountMenu';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/components/ui/sidebar';
 import { usePaginatedQuery } from '@/hooks/use-paginated-articles';
 import { usePendingArticleRecovery } from '@/hooks/use-pending-article-recovery';
 import { mapArticlesForDisplay } from '@/lib/article';
-import { authClient } from '@/lib/auth-client';
 import { normalizeTags, toTagsSearchParam } from '@/lib/tags';
 import { cn } from '@/lib/utils';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import { useQuery } from '@tanstack/react-query';
-import { Link, createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, useRouteContext } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
-import { ChevronDown, LayoutGrid, List, LoaderCircle, TextAlignEnd, X } from 'lucide-react';
+import { ChevronDown, LayoutGrid, List, LoaderCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ArticleCard, ArticleCardSkeleton } from '../components/ArticleCard';
 import { ArticleListItem, ArticleListItemSkeleton } from '../components/ArticleListItem';
 import { PasteInput } from '../components/PasteInput';
-import { Search } from '../components/Search';
 
 type ViewMode = 'grid' | 'list';
 type TabFilter = 'unread' | 'all' | 'archive';
@@ -77,8 +74,6 @@ function HomeRoute() {
   const selectedTags = tags ?? [];
   const { isAuthenticated } = useRouteContext({ from: Route.id });
   const navigate = useNavigate();
-  const { toggleSidebar } = useSidebar();
-  const { data: session, isPending } = authClient.useSession();
   const [isTagPanelOpen, setIsTagPanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') {
@@ -133,76 +128,7 @@ function HomeRoute() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-muted">
-      {/* Fixed Logo - stays in place while scrolling */}
-      <Link
-        to="/"
-        className="fixed left-4 sm:left-6 top-[18.5px] z-80 flex items-center group"
-        style={{ left: 'max(16px, calc((100vw - 1400px) / 2 + 16px))' }}
-      >
-        <AppLogo className="w-5 h-5" imgClassName="w-5 h-5" />
-      </Link>
-
-      {/* Header - scrolls away */}
-      <header className="z-60 w-full bg-background">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            {/* Spacer for fixed logo */}
-            <div className="w-1" />
-
-            <Link
-              to="/"
-              className={'text-lg transition-colors whitespace-nowrap text-foreground font-bold'}
-            >
-              rlist
-            </Link>
-
-            {/* <nav className="hidden md:flex items-center gap-6">
-              {['Dashboard', 'Discover', 'Analytics'].map((item) => (
-                <a
-                  key={item}
-                  href="/"
-                  className={`text-[14px] font-medium transition-colors whitespace-nowrap ${
-                    item === 'Dashboard'
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {item}
-                </a>
-              ))}
-            </nav> */}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Search />
-
-            {!isPending &&
-              (session ? (
-                <div className="flex items-center gap-3">
-                  <UserAccountMenu session={session} />
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" asChild className="hidden md:flex">
-                    <Link to="/login">Sign in</Link>
-                  </Button>
-                  <Button size="sm" asChild className="hidden md:flex">
-                    <Link to="/signup">Get Started</Link>
-                  </Button>
-                </div>
-              ))}
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="flex md:hidden h-8 w-8"
-              onClick={toggleSidebar}
-            >
-              <TextAlignEnd className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Filter Bar - sticky */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">

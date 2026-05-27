@@ -15,7 +15,7 @@ export function Search() {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 250);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated } = useRouteContext({ from: '/' });
+  const { isAuthenticated } = useRouteContext({ from: '__root__' });
 
   const hasSearchQuery = debouncedQuery.trim().length > 0;
 
