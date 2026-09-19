@@ -1,9 +1,13 @@
 import { paginationOptsValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
 import { action, internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { authComponent } from './auth';
+
+/** Max userArticles rows to scan while filling a tag-filtered page. */
+const TAG_FILTER_MAX_ROWS_READ = 512;
 
 const FETCH_TIMEOUT_MS = 10_000;
 const FETCH_MAX_BODY_BYTES = 5 * 1024 * 1024; // 5MB
@@ -162,6 +166,67 @@ function hasMatchingTag(articleTags: string[], selectedTags: string[]): boolean 
   }
 
   return articleTags.some((tag) => selectedTags.includes(tag));
+}
+
+type ArticleListFilter = 'unread' | 'all' | 'archive';
+
+type UserArticleListItem = {
+  articleId: Id<'articles'>;
+  url: string;
+  title: string | null;
+  description: string | null;
+  domain: string;
+  faviconUrl: string;
+  tags: string[];
+  isRead?: boolean;
+  isArchived?: boolean;
+  _creationTime: number;
+};
+
+function userArticlesByTabQuery(ctx: QueryCtx, userId: string, filter: ArticleListFilter) {
+  if (filter === 'archive') {
+    return ctx.db
+      .query('userArticles')
+      .withIndex('by_userId_and_isArchived', (q) => q.eq('userId', userId).eq('isArchived', true))
+      .order('desc');
+  }
+
+  if (filter === 'all') {
+    return ctx.db
+      .query('userArticles')
+      .withIndex('by_userId_and_isArchived', (q) => q.eq('userId', userId).eq('isArchived', false))
+      .order('desc');
+  }
+
+  return ctx.db
+    .query('userArticles')
+    .withIndex('by_userId_and_isArchived_and_isRead', (q) =>
+      q.eq('userId', userId).eq('isArchived', false).eq('isRead', false)
+    )
+    .order('desc');
+}
+
+async function toUserArticleListItem(
+  ctx: QueryCtx,
+  userArticle: Doc<'userArticles'>
+): Promise<UserArticleListItem | null> {
+  const article = await ctx.db.get(userArticle.articleId);
+  if (!article) {
+    return null;
+  }
+
+  return {
+    articleId: article._id,
+    url: article.url,
+    title: article.title,
+    description: article.description,
+    domain: article.domain,
+    faviconUrl: article.faviconUrl,
+    tags: userArticle.tags,
+    isRead: userArticle.isRead,
+    isArchived: userArticle.isArchived,
+    _creationTime: userArticle._creationTime,
+  };
 }
 
 export const fetchMetadata = action({
@@ -561,58 +626,63 @@ export const listUserArticles = query({
     const filter = args.filter ?? 'unread';
     const tags = normalizeTagFilters(args.tags ?? []);
     const userId = user._id.toString();
-    const userArticles =
-      filter === 'archive'
-        ? await ctx.db
-            .query('userArticles')
-            .withIndex('by_userId_and_isArchived', (q) =>
-              q.eq('userId', userId).eq('isArchived', true)
-            )
-            .order('desc')
-            .paginate(args.paginationOpts)
-        : filter === 'all'
-          ? await ctx.db
-              .query('userArticles')
-              .withIndex('by_userId_and_isArchived', (q) =>
-                q.eq('userId', userId).eq('isArchived', false)
-              )
-              .order('desc')
-              .paginate(args.paginationOpts)
-          : await ctx.db
-              .query('userArticles')
-              .withIndex('by_userId_and_isArchived_and_isRead', (q) =>
-                q.eq('userId', userId).eq('isArchived', false).eq('isRead', false)
-              )
-              .order('desc')
-              .paginate(args.paginationOpts);
+    const targetPageSize = args.paginationOpts.numItems;
 
-    const page = [];
-    for (const ua of userArticles.page) {
-      if (!hasMatchingTag(ua.tags, tags)) {
-        continue;
+    // No tag filter: standard pagination.
+    if (tags.length === 0) {
+      const userArticles = await userArticlesByTabQuery(ctx, userId, filter).paginate(
+        args.paginationOpts
+      );
+      const page: UserArticleListItem[] = [];
+      for (const ua of userArticles.page) {
+        const item = await toUserArticleListItem(ctx, ua);
+        if (item) {
+          page.push(item);
+        }
       }
 
-      const article = await ctx.db.get(ua.articleId);
-      if (article) {
-        page.push({
-          articleId: article._id,
-          url: article.url,
-          title: article.title,
-          description: article.description,
-          domain: article.domain,
-          faviconUrl: article.faviconUrl,
-          tags: ua.tags,
-          isRead: ua.isRead,
-          isArchived: ua.isArchived,
-          _creationTime: ua._creationTime,
-        });
+      return {
+        page,
+        isDone: userArticles.isDone,
+        continueCursor: userArticles.continueCursor,
+      };
+    }
+
+    // Tag filter: scan batches until the page is full (or the tab is exhausted).
+    // Filtering after a single paginate() drops non-matching rows and can return an
+    // empty page even when matches exist later — which looks like "filter broken".
+    const page: UserArticleListItem[] = [];
+    let cursor = args.paginationOpts.cursor;
+    let isDone = false;
+    let rowsRead = 0;
+
+    while (page.length < targetPageSize && !isDone && rowsRead < TAG_FILTER_MAX_ROWS_READ) {
+      const batchSize = Math.min(Math.max(targetPageSize, 32), TAG_FILTER_MAX_ROWS_READ - rowsRead);
+      const batch = await userArticlesByTabQuery(ctx, userId, filter).paginate({
+        numItems: batchSize,
+        cursor,
+      });
+
+      rowsRead += batch.page.length;
+      cursor = batch.continueCursor;
+      isDone = batch.isDone;
+
+      for (const ua of batch.page) {
+        if (!hasMatchingTag(ua.tags, tags)) {
+          continue;
+        }
+
+        const item = await toUserArticleListItem(ctx, ua);
+        if (item) {
+          page.push(item);
+        }
       }
     }
 
     return {
       page,
-      isDone: userArticles.isDone,
-      continueCursor: userArticles.continueCursor,
+      isDone,
+      continueCursor: cursor ?? '',
     };
   },
 });
@@ -633,30 +703,7 @@ export const listUserTags = query({
 
     const filter = args.filter ?? 'unread';
     const userId = user._id.toString();
-    const userArticles =
-      filter === 'archive'
-        ? await ctx.db
-            .query('userArticles')
-            .withIndex('by_userId_and_isArchived', (q) =>
-              q.eq('userId', userId).eq('isArchived', true)
-            )
-            .order('desc')
-            .collect()
-        : filter === 'all'
-          ? await ctx.db
-              .query('userArticles')
-              .withIndex('by_userId_and_isArchived', (q) =>
-                q.eq('userId', userId).eq('isArchived', false)
-              )
-              .order('desc')
-              .collect()
-          : await ctx.db
-              .query('userArticles')
-              .withIndex('by_userId_and_isArchived_and_isRead', (q) =>
-                q.eq('userId', userId).eq('isArchived', false).eq('isRead', false)
-              )
-              .order('desc')
-              .collect();
+    const userArticles = await userArticlesByTabQuery(ctx, userId, filter).collect();
 
     const tags = normalizeTagFilters(userArticles.flatMap((article) => article.tags));
     return tags.sort((left, right) => left.localeCompare(right));

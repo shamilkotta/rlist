@@ -327,6 +327,7 @@ function ArticlesList({
   const isInitialArticlesLoading = paginationStatus === 'LoadingFirstPage';
   const canLoadMore = paginationStatus === 'CanLoadMore';
   const isLoadingMore = paginationStatus === 'LoadingMore';
+  const isExhausted = paginationStatus === 'Exhausted';
 
   function handleLoadMore() {
     if (!canLoadMore) {
@@ -337,12 +338,13 @@ function ArticlesList({
   }
 
   const articles = mapArticlesForDisplay(allUserArticles);
+  const showEmptyState = articles.length === 0 && isExhausted;
 
   return (
     <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
       {isInitialArticlesLoading ? (
         <ArticlesListFallback viewMode={viewMode} />
-      ) : articles.length === 0 ? (
+      ) : showEmptyState ? (
         <div className="py-12 text-center text-muted-foreground text-sm">
           {selectedTags.length > 0
             ? 'No articles match the selected tags.'
@@ -354,30 +356,34 @@ function ArticlesList({
         </div>
       ) : (
         <>
-          <div
-            className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
-          >
-            {articles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                {...article}
-                activeTags={selectedTags}
-                onTagClick={onTagClick}
-              />
-            ))}
-          </div>
-          <div
-            className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
-          >
-            {articles.map((article) => (
-              <ArticleListItem
-                key={article.id}
-                {...article}
-                activeTags={selectedTags}
-                onTagClick={onTagClick}
-              />
-            ))}
-          </div>
+          {articles.length > 0 && (
+            <>
+              <div
+                className={`${viewMode === 'grid' ? 'grid' : 'md:hidden grid'} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-dashed border-border [&>*:nth-child(-n+1)]:border-t md:[&>*:nth-child(-n+2)]:border-t lg:[&>*:nth-child(-n+3)]:border-t`}
+              >
+                {articles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    {...article}
+                    activeTags={selectedTags}
+                    onTagClick={onTagClick}
+                  />
+                ))}
+              </div>
+              <div
+                className={`${viewMode === 'list' ? 'md:block hidden' : 'hidden'} border-l border-t border-dashed border-border`}
+              >
+                {articles.map((article) => (
+                  <ArticleListItem
+                    key={article.id}
+                    {...article}
+                    activeTags={selectedTags}
+                    onTagClick={onTagClick}
+                  />
+                ))}
+              </div>
+            </>
+          )}
           {(canLoadMore || isLoadingMore) && (
             <div className="flex justify-center py-12">
               <Button
