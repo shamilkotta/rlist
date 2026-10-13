@@ -46,10 +46,15 @@ export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>): HomeRouteSearch => {
     const tab = search.tab as string;
     const tags = normalizeTags(search.tags);
+    const validated: HomeRouteSearch = {};
     if (VALID_TABS.includes(tab as TabFilter)) {
-      return { tab: tab as TabFilter, tags };
+      validated.tab = tab as TabFilter;
     }
-    return { tags };
+    // Omit empty tags so the URL does not become ?tags=%5B%5D
+    if (tags.length > 0) {
+      validated.tags = tags;
+    }
+    return validated;
   },
   loaderDeps: ({ search }) => ({ tab: search.tab ?? 'unread', tags: search.tags?.join(',') ?? '' }),
   loader: async (ctx) => {
@@ -269,6 +274,7 @@ function HomeRoute() {
 
         {/* Articles Grid/List View */}
         <ArticlesList
+          key={`${activeTab}:${selectedTags.join(',')}`}
           activeTab={activeTab}
           viewMode={viewMode}
           selectedTags={selectedTags}

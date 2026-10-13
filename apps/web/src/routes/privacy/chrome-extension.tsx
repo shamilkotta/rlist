@@ -1,4 +1,5 @@
 import { PolicyPage } from '@/components/PolicyPage';
+import { getContactEmail } from '@/lib/env';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/privacy/chrome-extension')({
@@ -9,6 +10,8 @@ export const Route = createFileRoute('/privacy/chrome-extension')({
 });
 
 function ExtensionPrivacyRoute() {
+  const contactEmail = getContactEmail();
+
   return (
     <PolicyPage
       title="rlist Chrome Extension Privacy Policy"
@@ -72,7 +75,7 @@ function ExtensionPrivacyRoute() {
         {
           title: '7) Contact information',
           paragraphs: [
-            'For Chrome Extension privacy questions or deletion requests, contact: support@rlist.app.',
+            `For Chrome Extension privacy questions or deletion requests, contact: ${contactEmail}.`,
             // 'Legal entity: [legal entity placeholder]. Mailing address: [address placeholder].',
           ],
         },

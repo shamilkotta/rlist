@@ -34,6 +34,12 @@ pnpm codegen
 
 First-time setup: `convex dev` will prompt for login and project linking. After that, copy the deployment URL into each client’s env files (`VITE_*`, `EXPO_PUBLIC_*`).
 
+Convex dashboard / CLI env (not committed):
+
+- `SITE_URL` — App origin used by Better Auth.
+- `EMAIL_FROM` — From address for transactional email (e.g. verification).
+- `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` — Cloudflare Email Sending.
+
 ## Documentation
 
 - Project-specific Convex tips: [convex/README.md](./convex/README.md)

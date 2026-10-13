@@ -32,17 +32,21 @@ export function usePaginatedQuery({
     () => [CACHE_KEY_PREFIX, 'cursors', filter, tags.join(','), pageSize] as const,
     [filter, pageSize, tags]
   );
+  const cursorScope = cursorCacheKey.join('\0');
 
   const [loadedCursors, setLoadedCursors] = useState<Array<string | null>>(
     () => queryClient.getQueryData<Array<string | null>>(cursorCacheKey) ?? [null]
   );
+  const [activeCursorScope, setActiveCursorScope] = useState(cursorScope);
   const pendingPagesToLoadRef = useRef(0);
 
-  useEffect(() => {
-    const cachedCursors = queryClient.getQueryData<Array<string | null>>(cursorCacheKey);
-    setLoadedCursors(cachedCursors ?? [null]);
+  // Reset cursors synchronously when tab/tags change so we never query new tags
+  // with cursors from the previous filter scope.
+  if (activeCursorScope !== cursorScope) {
+    setActiveCursorScope(cursorScope);
+    setLoadedCursors(queryClient.getQueryData<Array<string | null>>(cursorCacheKey) ?? [null]);
     pendingPagesToLoadRef.current = 0;
-  }, [cursorCacheKey, queryClient]);
+  }
 
   useEffect(() => {
     queryClient.setQueryData<Array<string | null>>(cursorCacheKey, loadedCursors, {
@@ -61,7 +65,8 @@ export function usePaginatedQuery({
         },
       }),
       gcTime: CACHE_GC_TIME,
-      staleTime: CACHE_GC_TIME,
+      // Don't keep pre-fix empty tag pages "fresh" for minutes after a backend deploy.
+      staleTime: 0,
     })),
   });
 
@@ -99,6 +104,10 @@ export function usePaginatedQuery({
     const firstPageQuery = reactivePageQueries.at(0);
     if (firstPageQuery?.isPending && !firstPageQuery.data) {
       return 'LoadingFirstPage';
+    }
+
+    if (firstPageQuery?.isError) {
+      return 'Exhausted';
     }
 
     const isLoadingMore =

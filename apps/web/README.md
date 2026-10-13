@@ -17,6 +17,7 @@ Create `apps/web/.env.local` (or the env files Vite loads for your mode) with at
 
 - `VITE_CONVEX_URL` — Convex HTTP URL for the deployment used by this app.
 - `VITE_CONVEX_SITE_URL` — Convex site URL (Better Auth / OAuth callbacks).
+- `VITE_CONTACT_EMAIL` — Public contact email shown on privacy pages.
 
 ## Commands
 

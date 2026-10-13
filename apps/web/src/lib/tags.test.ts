@@ -11,8 +11,9 @@ describe('normalizeTags', () => {
     expect(normalizeTags('design, dev')).toEqual(['DESIGN', 'DEV']);
   });
 
-  it('parses array of strings', () => {
-    expect(normalizeTags(['design', 'dev'])).toEqual(['DESIGN', 'DEV']);
+  it('parses JSON array strings', () => {
+    expect(normalizeTags('["design","dev"]')).toEqual(['DESIGN', 'DEV']);
+    expect(normalizeTags('[]')).toEqual([]);
   });
 
   it('uppercases and trims', () => {

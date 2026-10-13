@@ -6,11 +6,24 @@ export function normalizeTags(rawTags: unknown): string[] {
     return [];
   }
 
+  let source: unknown = rawTags;
+  // TanStack may pass arrays already parsed; also accept a JSON array string.
+  if (typeof source === 'string') {
+    const trimmed = source.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        source = JSON.parse(trimmed) as unknown;
+      } catch {
+        // Fall through to comma-separated parsing.
+      }
+    }
+  }
+
   const tagValues =
-    typeof rawTags === 'string'
-      ? rawTags.split(',')
-      : Array.isArray(rawTags)
-        ? rawTags.flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
+    typeof source === 'string'
+      ? source.split(',')
+      : Array.isArray(source)
+        ? source.flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
         : [];
 
   return [...new Set(tagValues.map((tag) => tag.trim().toUpperCase()).filter(Boolean))]

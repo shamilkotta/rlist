@@ -7,7 +7,7 @@ import { action, internalMutation, internalQuery, mutation, query } from './_gen
 import { authComponent } from './auth';
 
 /** Max userArticles rows to scan while filling a tag-filtered page. */
-const TAG_FILTER_MAX_ROWS_READ = 512;
+const TAG_FILTER_MAX_ROWS_READ = 4096;
 
 const FETCH_TIMEOUT_MS = 10_000;
 const FETCH_MAX_BODY_BYTES = 5 * 1024 * 1024; // 5MB
@@ -165,7 +165,8 @@ function hasMatchingTag(articleTags: string[], selectedTags: string[]): boolean 
     return true;
   }
 
-  return articleTags.some((tag) => selectedTags.includes(tag));
+  const selected = new Set(selectedTags);
+  return articleTags.some((tag) => selected.has(tag.trim().toUpperCase()));
 }
 
 type ArticleListFilter = 'unread' | 'all' | 'archive';
@@ -301,7 +302,7 @@ async function fetchMetadataForUrl(url: string) {
       signal: controller.signal,
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; RListBot/1.0; +https://rlist.app)',
+        'User-Agent': `Mozilla/5.0 (compatible; RListBot/1.0; +${process.env.SITE_URL ?? 'https://localhost'})`,
         Accept: 'text/html',
       },
     });

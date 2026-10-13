@@ -1,4 +1,5 @@
 import { PolicyPage } from '@/components/PolicyPage';
+import { getContactEmail } from '@/lib/env';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/privacy/')({
@@ -9,6 +10,8 @@ export const Route = createFileRoute('/privacy/')({
 });
 
 function AppPrivacyRoute() {
+  const contactEmail = getContactEmail();
+
   return (
     <PolicyPage
       title="rlist Privacy Policy"
@@ -64,7 +67,7 @@ function AppPrivacyRoute() {
         {
           title: '7) Contact information',
           paragraphs: [
-            'For privacy requests, contact: support@rlist.app.',
+            `For privacy requests, contact: ${contactEmail}.`,
             // 'Legal entity: [legal entity placeholder]. Mailing address: [address placeholder].',
           ],
         },
