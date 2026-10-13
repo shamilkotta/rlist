@@ -66,7 +66,12 @@ export default function SignupScreen() {
         onChangeText={setEmail}
       />
 
-      <PasswordField label="Password" value={password} onChangeText={setPassword} />
+      <PasswordField
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        autoComplete="new-password"
+      />
 
       {error ? <Text style={[styles.errorText, { color: errorColor }]}>{error}</Text> : null}
 

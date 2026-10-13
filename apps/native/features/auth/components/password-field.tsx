@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -8,9 +8,15 @@ type PasswordFieldProps = {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
+  autoComplete?: TextInputProps['autoComplete'];
 };
 
-export function PasswordField({ label, value, onChangeText }: PasswordFieldProps) {
+export function PasswordField({
+  label,
+  value,
+  onChangeText,
+  autoComplete = 'current-password',
+}: PasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
   const textColor = useThemeColor({}, 'text');
   const subtitleColor = useThemeColor({}, 'subtitle');
@@ -26,6 +32,11 @@ export function PasswordField({ label, value, onChangeText }: PasswordFieldProps
           style={[styles.inputWithIcon, { color: textColor }]}
           value={value}
           onChangeText={onChangeText}
+          autoComplete={autoComplete}
+          textContentType={autoComplete === 'new-password' ? 'newPassword' : 'password'}
+          importantForAutofill="yes"
+          autoCapitalize="none"
+          autoCorrect={false}
           placeholderTextColor={subtitleColor}
         />
         <Pressable

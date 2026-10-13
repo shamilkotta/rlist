@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 
 import type { DisplayArticle } from '@/features/home/home-feed.types';
 import { useAppColors } from '@/hooks/use-theme';
@@ -8,11 +10,6 @@ import { formatRelativeDate } from '@/lib/date';
 import { openSafeUrl } from '@/lib/url';
 
 import { TagEditor } from './tag-editor';
-
-const ARTICLE_SEPARATOR_DASH_KEYS: string[] = Array.from(
-  { length: 36 },
-  (_, index) => `dash-${index}`
-);
 
 type ArticleCardProps = {
   article: DisplayArticle;
@@ -22,7 +19,7 @@ type ArticleCardProps = {
   onTagClick?: (tag: string) => void;
 };
 
-export function ArticleCard({
+export const ArticleCard = memo(function ArticleCard({
   article,
   activeTags = [],
   onOpenActions,
@@ -82,17 +79,20 @@ export function ArticleCard({
           />
         </View>
       </View>
-      <View style={styles.articleSeparator}>
-        {ARTICLE_SEPARATOR_DASH_KEYS.map((dashKey) => (
-          <View
-            key={dashKey}
-            style={[styles.articleSeparatorDash, { backgroundColor: c.border }]}
-          />
-        ))}
-      </View>
+      <Svg style={styles.articleSeparator} width="100%" height={2}>
+        <Line
+          x1="0"
+          y1="1"
+          x2="100%"
+          y2="1"
+          stroke={c.border}
+          strokeWidth={1.5}
+          strokeDasharray="6 4.4"
+        />
+      </Svg>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   articleItem: {
@@ -107,15 +107,6 @@ const styles = StyleSheet.create({
   },
   articleSeparator: {
     marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  articleSeparatorDash: {
-    width: 6,
-    height: 1.5,
-    borderRadius: 999,
   },
   articleContent: {
     gap: 8,

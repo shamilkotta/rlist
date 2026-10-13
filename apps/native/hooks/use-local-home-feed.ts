@@ -1,11 +1,11 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@rlist/api/convex/_generated/api';
 import type { Id } from '@rlist/api/convex/_generated/dataModel';
-import { useMutation, useQueries } from '@tanstack/react-query';
+import { type UseQueryResult, useMutation, useQueries } from '@tanstack/react-query';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type { DisplayArticle, PaginationStatus, TabFilter } from '@/features/home/home-feed.types';
-import { convexQueryClient, queryClient } from '@/lib/convex';
+import { convexQueryClient } from '@/lib/convex';
 
 export type { DisplayArticle, PaginationStatus, TabFilter };
 
@@ -24,8 +24,15 @@ type ServerArticle = {
   _creationTime: number;
 };
 
+// Cache by server object so unchanged articles keep the same DisplayArticle reference
+// across page loads, which lets the memoized ArticleCard skip re-rendering.
+const displayArticleCache = new WeakMap<ServerArticle, DisplayArticle>();
+
 function toDisplayArticle(article: ServerArticle): DisplayArticle {
-  return {
+  const cached = displayArticleCache.get(article);
+  if (cached) return cached;
+
+  const displayArticle: DisplayArticle = {
     articleId: article.articleId,
     url: article.url,
     title: article.title,
@@ -37,10 +44,25 @@ function toDisplayArticle(article: ServerArticle): DisplayArticle {
     isArchived: article.isArchived ?? false,
     creationTime: article._creationTime,
   };
+  displayArticleCache.set(article, displayArticle);
+  return displayArticle;
 }
 
-function invalidateArticleQueries() {
-  void queryClient.invalidateQueries();
+type ArticlesPage = {
+  page: ServerArticle[];
+  isDone: boolean;
+  continueCursor: string;
+};
+
+// Combined via `useQueries({ combine })` so the result keeps its identity across renders
+// unless a page actually changes. Without this, every render produced new `pages` /
+// `articles` arrays and re-rendered the whole list.
+function combinePages(results: UseQueryResult<ArticlesPage>[]) {
+  return {
+    pages: results.map((result) => result.data).filter((page) => page !== undefined),
+    isFirstPagePending: results.at(0)?.isPending ?? false,
+    isLastPagePending: results.at(-1)?.isPending ?? false,
+  };
 }
 
 export function useLocalHomeFeed(
@@ -72,7 +94,7 @@ export function useLocalHomeFeed(
     }
   }, [queryScopeChanged]);
 
-  const pageQueries = useQueries({
+  const { pages, isFirstPagePending, isLastPagePending } = useQueries({
     queries: activeUserId
       ? effectiveCursors.map((cursor) => ({
           ...convexQuery(api.articles.listUserArticles, {
@@ -82,14 +104,24 @@ export function useLocalHomeFeed(
           }),
         }))
       : [],
+    combine: combinePages,
   });
 
-  const pages = useMemo(
-    () => pageQueries.map((query) => query.data).filter((page) => page !== undefined),
-    [pageQueries]
-  );
-
-  const articles = useMemo(() => pages.flatMap((page) => page.page.map(toDisplayArticle)), [pages]);
+  // Each page is an independent live query, so when articles are added, read, archived or
+  // deleted the page boundaries shift and adjacent pages can overlap. Dedupe by id so the
+  // list never contains duplicate keys.
+  const articles = useMemo(() => {
+    const seen = new Set<string>();
+    const result: DisplayArticle[] = [];
+    for (const page of pages) {
+      for (const article of page.page) {
+        if (seen.has(article.articleId)) continue;
+        seen.add(article.articleId);
+        result.push(toDisplayArticle(article));
+      }
+    }
+    return result;
+  }, [pages]);
 
   const loadMore = useCallback(() => {
     const latestPage = pages.at(-1);
@@ -102,16 +134,14 @@ export function useLocalHomeFeed(
     setLoadedCursors((prev) => [...prev, nextCursor]);
   }, [loadedCursors, pages]);
 
-  const lastQuery = pageQueries.at(-1);
   useEffect(() => {
-    if (isLoadingMore && lastQuery && !lastQuery.isPending) {
+    if (isLoadingMore && !isLastPagePending) {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, lastQuery]);
+  }, [isLoadingMore, isLastPagePending]);
 
   const status = useMemo<PaginationStatus>(() => {
-    const firstQuery = pageQueries.at(0);
-    if (articles.length === 0 && firstQuery?.isPending && !firstQuery.data) {
+    if (articles.length === 0 && isFirstPagePending) {
       return 'LoadingFirstPage';
     }
     if (isLoadingMore) return 'LoadingMore';
@@ -120,14 +150,13 @@ export function useLocalHomeFeed(
     if (lastResolved && !lastResolved.isDone) return 'CanLoadMore';
 
     return 'Exhausted';
-  }, [articles.length, isLoadingMore, pageQueries, pages]);
+  }, [articles.length, isFirstPagePending, isLoadingMore, pages]);
 
   const toggleReadMutation = useMutation({
     mutationFn: (articleId: string) =>
       convexQueryClient.convexClient.mutation(api.articles.toggleReadStatus, {
         articleId: articleId as Id<'articles'>,
       }),
-    onSettled: invalidateArticleQueries,
   });
 
   const toggleArchiveMutation = useMutation({
@@ -135,7 +164,6 @@ export function useLocalHomeFeed(
       convexQueryClient.convexClient.mutation(api.articles.toggleArchiveStatus, {
         articleId: articleId as Id<'articles'>,
       }),
-    onSettled: invalidateArticleQueries,
   });
 
   const deleteArticleMutation = useMutation({
@@ -143,7 +171,6 @@ export function useLocalHomeFeed(
       convexQueryClient.convexClient.mutation(api.articles.deleteArticle, {
         articleId: articleId as Id<'articles'>,
       }),
-    onSettled: invalidateArticleQueries,
   });
 
   const updateTagsMutation = useMutation({
@@ -152,35 +179,38 @@ export function useLocalHomeFeed(
         articleId: articleId as Id<'articles'>,
         tags,
       }),
-    onSettled: invalidateArticleQueries,
   });
 
+  const { mutateAsync: toggleReadAsync } = toggleReadMutation;
   const toggleRead = useCallback(
     async (articleId: string) => {
-      await toggleReadMutation.mutateAsync(articleId);
+      await toggleReadAsync(articleId);
     },
-    [toggleReadMutation]
+    [toggleReadAsync]
   );
 
+  const { mutateAsync: toggleArchiveAsync } = toggleArchiveMutation;
   const toggleArchive = useCallback(
     async (articleId: string) => {
-      await toggleArchiveMutation.mutateAsync(articleId);
+      await toggleArchiveAsync(articleId);
     },
-    [toggleArchiveMutation]
+    [toggleArchiveAsync]
   );
 
+  const { mutateAsync: deleteArticleAsync } = deleteArticleMutation;
   const deleteArticle = useCallback(
     async (articleId: string) => {
-      await deleteArticleMutation.mutateAsync(articleId);
+      await deleteArticleAsync(articleId);
     },
-    [deleteArticleMutation]
+    [deleteArticleAsync]
   );
 
+  const { mutateAsync: updateTagsAsync } = updateTagsMutation;
   const updateTags = useCallback(
     async (articleId: string, tags: string[]) => {
-      await updateTagsMutation.mutateAsync({ articleId, tags });
+      await updateTagsAsync({ articleId, tags });
     },
-    [updateTagsMutation]
+    [updateTagsAsync]
   );
 
   return {

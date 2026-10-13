@@ -223,6 +223,9 @@ export default function HomeScreen() {
           stickyHeaderIndices={[1]}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={9}
           contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 80 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
