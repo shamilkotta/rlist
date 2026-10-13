@@ -184,26 +184,38 @@ type UserArticleListItem = {
   _creationTime: number;
 };
 
-function userArticlesByTabQuery(ctx: QueryCtx, userId: string, filter: ArticleListFilter) {
+function userArticlesByTabQuery(
+  ctx: QueryCtx,
+  userId: string,
+  filter: ArticleListFilter,
+  before?: number
+) {
   if (filter === 'archive') {
     return ctx.db
       .query('userArticles')
-      .withIndex('by_userId_and_isArchived', (q) => q.eq('userId', userId).eq('isArchived', true))
+      .withIndex('by_userId_and_isArchived', (q) => {
+        const range = q.eq('userId', userId).eq('isArchived', true);
+        return before === undefined ? range : range.lt('_creationTime', before);
+      })
       .order('desc');
   }
 
   if (filter === 'all') {
     return ctx.db
       .query('userArticles')
-      .withIndex('by_userId_and_isArchived', (q) => q.eq('userId', userId).eq('isArchived', false))
+      .withIndex('by_userId_and_isArchived', (q) => {
+        const range = q.eq('userId', userId).eq('isArchived', false);
+        return before === undefined ? range : range.lt('_creationTime', before);
+      })
       .order('desc');
   }
 
   return ctx.db
     .query('userArticles')
-    .withIndex('by_userId_and_isArchived_and_isRead', (q) =>
-      q.eq('userId', userId).eq('isArchived', false).eq('isRead', false)
-    )
+    .withIndex('by_userId_and_isArchived_and_isRead', (q) => {
+      const range = q.eq('userId', userId).eq('isArchived', false).eq('isRead', false);
+      return before === undefined ? range : range.lt('_creationTime', before);
+    })
     .order('desc');
 }
 
@@ -649,41 +661,39 @@ export const listUserArticles = query({
       };
     }
 
-    // Tag filter: scan batches until the page is full (or the tab is exhausted).
-    // Filtering after a single paginate() drops non-matching rows and can return an
-    // empty page even when matches exist later — which looks like "filter broken".
+    // Tag filter: Convex allows only one paginate() per query, so scan the tab in a single
+    // pass and use the last scanned `_creationTime` as the cursor. Scanning continues until
+    // the page is full so non-matching rows never produce an empty page.
+    const parsedCursor = args.paginationOpts.cursor
+      ? Number(args.paginationOpts.cursor)
+      : Number.NaN;
+    const before = Number.isFinite(parsedCursor) ? parsedCursor : undefined;
     const page: UserArticleListItem[] = [];
-    let cursor = args.paginationOpts.cursor;
-    let isDone = false;
+    let lastScannedCreationTime = before;
+    let isDone = true;
     let rowsRead = 0;
 
-    while (page.length < targetPageSize && !isDone && rowsRead < TAG_FILTER_MAX_ROWS_READ) {
-      const batchSize = Math.min(Math.max(targetPageSize, 32), TAG_FILTER_MAX_ROWS_READ - rowsRead);
-      const batch = await userArticlesByTabQuery(ctx, userId, filter).paginate({
-        numItems: batchSize,
-        cursor,
-      });
+    for await (const ua of userArticlesByTabQuery(ctx, userId, filter, before)) {
+      rowsRead += 1;
+      lastScannedCreationTime = ua._creationTime;
 
-      rowsRead += batch.page.length;
-      cursor = batch.continueCursor;
-      isDone = batch.isDone;
-
-      for (const ua of batch.page) {
-        if (!hasMatchingTag(ua.tags, tags)) {
-          continue;
-        }
-
+      if (hasMatchingTag(ua.tags, tags)) {
         const item = await toUserArticleListItem(ctx, ua);
         if (item) {
           page.push(item);
         }
+      }
+
+      if (page.length >= targetPageSize || rowsRead >= TAG_FILTER_MAX_ROWS_READ) {
+        isDone = false;
+        break;
       }
     }
 
     return {
       page,
       isDone,
-      continueCursor: cursor ?? '',
+      continueCursor: lastScannedCreationTime === undefined ? '' : String(lastScannedCreationTime),
     };
   },
 });

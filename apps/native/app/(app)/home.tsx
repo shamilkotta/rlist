@@ -5,11 +5,14 @@ import { api } from '@rlist/api/convex/_generated/api';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   Pressable,
   StyleSheet,
@@ -52,6 +55,8 @@ export default function HomeScreen() {
   const [actionTarget, setActionTarget] = useState<DisplayArticle | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DisplayArticle | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isFilterPinned, setIsFilterPinned] = useState(false);
+  const headerHeightRef = useRef(0);
 
   const userId = session?.user?.id;
 
@@ -125,6 +130,18 @@ export default function HomeScreen() {
     }
   }, [status, loadMore]);
 
+  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    headerHeightRef.current = event.nativeEvent.layout.height;
+  }, []);
+
+  // The filter tabs are pinned with an overlay instead of `stickyHeaderIndices`: on Android
+  // with the new architecture, sticky headers keep their unscrolled position for JS hit
+  // testing, so presses on them were cancelled once the list was scrolled.
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const headerHeight = headerHeightRef.current;
+    setIsFilterPinned(headerHeight > 0 && event.nativeEvent.contentOffset.y >= headerHeight);
+  }, []);
+
   const listData = useMemo<HomeListItem[]>(() => {
     const head: HomeListItem[] = [{ type: 'filter' }, { type: 'intro' }];
     if (status === 'LoadingFirstPage') {
@@ -133,21 +150,35 @@ export default function HomeScreen() {
     return [...head, ...articles.map((article): HomeListItem => ({ type: 'article', article }))];
   }, [articles, status]);
 
+  const filterTabs = useMemo(
+    () => (
+      <HomeFilterTabs
+        filter={filter}
+        onFilterChange={handleFilterChange}
+        isTagPanelOpen={isTagPanelOpen}
+        onToggleTagPanel={handleToggleTagPanel}
+        selectedTags={selectedTags}
+        availableTags={availableTags}
+        onToggleTag={handleToggleTag}
+        onClearTags={handleClearTags}
+      />
+    ),
+    [
+      availableTags,
+      filter,
+      handleClearTags,
+      handleFilterChange,
+      handleToggleTag,
+      handleToggleTagPanel,
+      isTagPanelOpen,
+      selectedTags,
+    ]
+  );
+
   const renderListItem = useCallback(
     ({ item }: { item: HomeListItem }) => {
       if (item.type === 'filter') {
-        return (
-          <HomeFilterTabs
-            filter={filter}
-            onFilterChange={handleFilterChange}
-            isTagPanelOpen={isTagPanelOpen}
-            onToggleTagPanel={handleToggleTagPanel}
-            selectedTags={selectedTags}
-            availableTags={availableTags}
-            onToggleTag={handleToggleTag}
-            onClearTags={handleClearTags}
-          />
-        );
+        return filterTabs;
       }
 
       if (item.type === 'intro') {
@@ -168,30 +199,20 @@ export default function HomeScreen() {
         />
       );
     },
-    [
-      articles.length,
-      availableTags,
-      filter,
-      handleClearTags,
-      handleFilterChange,
-      handleToggleTag,
-      handleToggleTagPanel,
-      isTagPanelOpen,
-      selectedTags,
-      status,
-      updateTags,
-    ]
+    [articles.length, filter, filterTabs, handleToggleTag, selectedTags, status, updateTags]
   );
 
   const renderHeader = useCallback(
     () => (
-      <HomeHeader
-        userName={session?.user?.name}
-        onPressProfile={() => router.push('/profile')}
-        onPressSearch={() => router.push('/search')}
-      />
+      <View onLayout={handleHeaderLayout}>
+        <HomeHeader
+          userName={session?.user?.name}
+          onPressProfile={() => router.push('/profile')}
+          onPressSearch={() => router.push('/search')}
+        />
+      </View>
     ),
-    [session?.user?.name, router]
+    [handleHeaderLayout, session?.user?.name, router]
   );
 
   const renderFooter = useCallback(() => {
@@ -220,7 +241,8 @@ export default function HomeScreen() {
           keyExtractor={keyExtractor}
           ListHeaderComponent={renderHeader}
           ListFooterComponent={renderFooter}
-          stickyHeaderIndices={[1]}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
           initialNumToRender={8}
@@ -230,6 +252,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         />
+        {isFilterPinned && <View style={styles.pinnedFilter}>{filterTabs}</View>}
       </KeyboardAvoidingView>
 
       <ArticleActionsSheet
@@ -281,6 +304,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 8,
+  },
+  pinnedFilter: {
+    position: 'absolute',
+    top: 0,
+    left: 8,
+    right: 8,
   },
   footer: {
     paddingVertical: 20,
