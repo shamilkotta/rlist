@@ -1,5 +1,6 @@
 {
   "name": "rlist-extension",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
